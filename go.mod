@@ -1,4 +1,4 @@
-module github.com/ozonmp/omp-template-api
+module github.com/ozonmp/logistic-package-api
 
 go 1.16
 
@@ -19,6 +19,8 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	google.golang.org/grpc v1.41.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	github.com/gammazero/workerpool v1.1.2 // indirect
+	github.com/golang/mock v1.6.0 // indirect
 )
 
 replace github.com/ozonmp/omp-template-api/pkg/omp-template-api => ./pkg/omp-template-api
