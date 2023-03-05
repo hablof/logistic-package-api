@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ozonmp/omp-demo-api/internal/app/sender"
-	"github.com/ozonmp/omp-demo-api/internal/model"
+	"github.com/hablof/logistic-package-api/internal/app/sender"
+	"github.com/hablof/logistic-package-api/internal/model"
 
 	"github.com/gammazero/workerpool"
 )

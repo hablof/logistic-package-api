@@ -1,4 +1,4 @@
-module github.com/ozonmp/logistic-package-api
+module github.com/hablof/logistic-package-api
 
 go 1.16
 
