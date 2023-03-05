@@ -42,17 +42,25 @@ func NewRetranslator(cfg Config) Retranslator {
 	events := make(chan model.PackageEvent, cfg.ChannelSize)
 	workerPool := workerpool.New(cfg.WorkerCount)
 
-	consumer := consumer.NewDbConsumer(
-		cfg.ConsumerCount,
-		cfg.ConsumeSize,
-		cfg.ConsumeTimeout,
-		cfg.Repo,
-		events)
-	producer := producer.NewKafkaProducer(
-		cfg.ProducerCount,
-		cfg.Sender,
-		events,
-		workerPool)
+	consumerCfg := consumer.ConsumerConfig{
+		ConsumeCount: cfg.ConsumerCount,
+		Events:       events,
+		Repo:         cfg.Repo,
+		BatchSize:    cfg.ConsumeSize,
+		Timeout:      cfg.ConsumeTimeout,
+	}
+
+	producerCfg := producer.ProducerConfig{
+		ProducerCount: cfg.ProducerCount,
+		Timeout:       0,
+		Repo:          cfg.Repo,
+		Sender:        cfg.Sender,
+		Events:        events,
+		WorkerPool:    workerPool,
+	}
+
+	consumer := consumer.NewDbConsumer(consumerCfg)
+	producer := producer.NewKafkaProducer(producerCfg)
 
 	return &retranslator{
 		events:     events,

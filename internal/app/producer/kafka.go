@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
 
@@ -16,8 +17,10 @@ type Producer interface {
 }
 
 type producer struct {
-	n       uint64
-	timeout time.Duration
+	producerCount uint64
+	timeout       time.Duration
+
+	repo repo.EventRepo
 
 	sender sender.EventSender
 	events <-chan model.PackageEvent
@@ -25,32 +28,37 @@ type producer struct {
 	workerPool *workerpool.WorkerPool
 
 	wg   *sync.WaitGroup
-	done chan bool
+	done chan bool // use ctx
 }
 
-// todo for students: add repo
-func NewKafkaProducer(
-	n uint64,
-	sender sender.EventSender,
-	events <-chan model.PackageEvent,
-	workerPool *workerpool.WorkerPool,
-) Producer {
+type ProducerConfig struct {
+	ProducerCount uint64
+	Timeout       time.Duration
+	Repo          repo.EventRepo
+	Sender        sender.EventSender
+	Events        <-chan model.PackageEvent
+	WorkerPool    *workerpool.WorkerPool
+}
+
+func NewKafkaProducer(cfg ProducerConfig) Producer {
 
 	wg := &sync.WaitGroup{}
 	done := make(chan bool)
 
 	return &producer{
-		n:          n,
-		sender:     sender,
-		events:     events,
-		workerPool: workerPool,
-		wg:         wg,
-		done:       done,
+		producerCount: cfg.ProducerCount,
+		timeout:       cfg.Timeout,
+		repo:          cfg.Repo,
+		sender:        cfg.Sender,
+		events:        cfg.Events,
+		workerPool:    cfg.WorkerPool,
+		wg:            wg,
+		done:          done, // use ctx
 	}
 }
 
 func (p *producer) Start() {
-	for i := uint64(0); i < p.n; i++ {
+	for i := uint64(0); i < p.producerCount; i++ {
 		p.wg.Add(1)
 		go func() {
 			defer p.wg.Done()

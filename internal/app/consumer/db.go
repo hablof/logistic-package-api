@@ -14,8 +14,8 @@ type Consumer interface {
 }
 
 type consumer struct {
-	n      uint64
-	events chan<- model.PackageEvent
+	consumerCount uint64
+	events        chan<- model.PackageEvent
 
 	repo repo.EventRepo
 
@@ -26,37 +26,32 @@ type consumer struct {
 	wg   *sync.WaitGroup
 }
 
-type Config struct {
-	n         uint64
-	events    chan<- model.PackageEvent
-	repo      repo.EventRepo
-	batchSize uint64
-	timeout   time.Duration
+type ConsumerConfig struct {
+	ConsumeCount uint64
+	Events       chan<- model.PackageEvent
+	Repo         repo.EventRepo
+	BatchSize    uint64
+	Timeout      time.Duration
 }
 
-func NewDbConsumer(
-	n uint64,
-	batchSize uint64,
-	consumeTimeout time.Duration,
-	repo repo.EventRepo,
-	events chan<- model.PackageEvent) Consumer {
+func NewDbConsumer(cfg ConsumerConfig) Consumer {
 
 	wg := &sync.WaitGroup{}
 	done := make(chan bool)
 
 	return &consumer{
-		n:         n,
-		batchSize: batchSize,
-		timeout:   consumeTimeout,
-		repo:      repo,
-		events:    events,
-		wg:        wg,
-		done:      done,
+		consumerCount: cfg.ConsumeCount,
+		batchSize:     cfg.BatchSize,
+		timeout:       cfg.Timeout,
+		repo:          cfg.Repo,
+		events:        cfg.Events,
+		wg:            wg,
+		done:          done, // use ctx
 	}
 }
 
 func (c *consumer) Start() {
-	for i := uint64(0); i < c.n; i++ {
+	for i := uint64(0); i < c.consumerCount; i++ {
 		c.wg.Add(1)
 
 		go func() {
