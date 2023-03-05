@@ -1,7 +1,7 @@
 package repo
 
 import (
-	"github.com/ozonmp/omp-demo-api/internal/model"
+	"github.com/hablof/logistic-package-api/internal/model"
 )
 
 type EventRepo interface {

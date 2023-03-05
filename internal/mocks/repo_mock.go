@@ -8,7 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/ozonmp/omp-demo-api/internal/model"
+	model "github.com/hablof/logistic-package-api/internal/model"
 )
 
 // MockEventRepo is a mock of EventRepo interface.
