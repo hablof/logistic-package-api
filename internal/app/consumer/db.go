@@ -15,7 +15,7 @@ type Consumer interface {
 
 type consumer struct {
 	consumerCount uint64
-	events        chan<- model.PackageEvent
+	eventsChannel chan<- model.PackageEvent
 
 	repo repo.EventRepo
 
@@ -27,11 +27,11 @@ type consumer struct {
 }
 
 type ConsumerConfig struct {
-	ConsumeCount uint64
-	Events       chan<- model.PackageEvent
-	Repo         repo.EventRepo
-	BatchSize    uint64
-	Timeout      time.Duration
+	ConsumeCount  uint64
+	EventsChannel chan<- model.PackageEvent
+	Repo          repo.EventRepo
+	BatchSize     uint64
+	Timeout       time.Duration
 }
 
 func NewDbConsumer(cfg ConsumerConfig) Consumer {
@@ -44,7 +44,7 @@ func NewDbConsumer(cfg ConsumerConfig) Consumer {
 		batchSize:     cfg.BatchSize,
 		timeout:       cfg.Timeout,
 		repo:          cfg.Repo,
-		events:        cfg.Events,
+		eventsChannel: cfg.EventsChannel,
 		wg:            wg,
 		done:          done, // use ctx
 	}
@@ -65,7 +65,7 @@ func (c *consumer) Start() {
 						continue
 					}
 					for _, event := range events {
-						c.events <- event
+						c.eventsChannel <- event
 					}
 				case <-c.done:
 					return

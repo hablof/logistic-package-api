@@ -2,7 +2,6 @@ package producer
 
 import (
 	"sync"
-	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
@@ -18,12 +17,11 @@ type Producer interface {
 
 type producer struct {
 	producerCount uint64
-	timeout       time.Duration
 
 	repo repo.EventRepo
 
-	sender sender.EventSender
-	events <-chan model.PackageEvent
+	sender        sender.EventSender
+	eventsChannel <-chan model.PackageEvent
 
 	workerPool *workerpool.WorkerPool
 
@@ -33,10 +31,9 @@ type producer struct {
 
 type ProducerConfig struct {
 	ProducerCount uint64
-	Timeout       time.Duration
 	Repo          repo.EventRepo
 	Sender        sender.EventSender
-	Events        <-chan model.PackageEvent
+	EventsChannel <-chan model.PackageEvent
 	WorkerPool    *workerpool.WorkerPool
 }
 
@@ -47,10 +44,9 @@ func NewKafkaProducer(cfg ProducerConfig) Producer {
 
 	return &producer{
 		producerCount: cfg.ProducerCount,
-		timeout:       cfg.Timeout,
 		repo:          cfg.Repo,
 		sender:        cfg.Sender,
-		events:        cfg.Events,
+		eventsChannel: cfg.EventsChannel,
 		workerPool:    cfg.WorkerPool,
 		wg:            wg,
 		done:          done, // use ctx
@@ -64,7 +60,7 @@ func (p *producer) Start() {
 			defer p.wg.Done()
 			for {
 				select {
-				case event := <-p.events:
+				case event := <-p.eventsChannel:
 					if err := p.sender.Send(&event); err != nil {
 						p.workerPool.Submit(func() {
 							// ...
