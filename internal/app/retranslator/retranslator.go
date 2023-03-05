@@ -39,23 +39,22 @@ type retranslator struct {
 }
 
 func NewRetranslator(cfg Config) Retranslator {
-	events := make(chan model.PackageEvent, cfg.ChannelSize)
+	eventsChannel := make(chan model.PackageEvent, cfg.ChannelSize)
 	workerPool := workerpool.New(cfg.WorkerCount)
 
 	consumerCfg := consumer.ConsumerConfig{
-		ConsumeCount: cfg.ConsumerCount,
-		Events:       events,
-		Repo:         cfg.Repo,
-		BatchSize:    cfg.ConsumeSize,
-		Timeout:      cfg.ConsumeTimeout,
+		ConsumeCount:  cfg.ConsumerCount,
+		EventsChannel: eventsChannel,
+		Repo:          cfg.Repo,
+		BatchSize:     cfg.ConsumeSize,
+		Timeout:       cfg.ConsumeTimeout,
 	}
 
 	producerCfg := producer.ProducerConfig{
 		ProducerCount: cfg.ProducerCount,
-		Timeout:       0,
 		Repo:          cfg.Repo,
 		Sender:        cfg.Sender,
-		Events:        events,
+		EventsChannel: eventsChannel,
 		WorkerPool:    workerPool,
 	}
 
@@ -63,7 +62,7 @@ func NewRetranslator(cfg Config) Retranslator {
 	producer := producer.NewKafkaProducer(producerCfg)
 
 	return &retranslator{
-		events:     events,
+		events:     eventsChannel,
 		consumer:   consumer,
 		producer:   producer,
 		workerPool: workerPool,
