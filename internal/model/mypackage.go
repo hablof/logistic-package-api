@@ -16,6 +16,7 @@ const (
 )
 
 type Package struct {
+	ID            uint64
 	Title         string
 	Material      string
 	MaximumVolume float32 //cm^3
