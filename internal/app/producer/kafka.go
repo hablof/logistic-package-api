@@ -53,27 +53,33 @@ func NewKafkaProducer(cfg ProducerConfig) Producer {
 	}
 }
 
+func (p *producer) handle() {
+	for {
+		select {
+		case event := <-p.eventsChannel: // TODO end work on channel close
+			switch err := p.sender.Send(&event); err {
+			case nil:
+				p.workerPool.Submit(func() {
+					p.repo.Remove([]uint64{event.ID})
+				})
+
+			default:
+				p.workerPool.Submit(func() {
+					p.repo.Unlock([]uint64{event.ID})
+				})
+			}
+		case <-p.done:
+			return
+		}
+	}
+}
+
 func (p *producer) Start() {
 	for i := uint64(0); i < p.producerCount; i++ {
 		p.wg.Add(1)
 		go func() {
 			defer p.wg.Done()
-			for {
-				select {
-				case event := <-p.eventsChannel:
-					if err := p.sender.Send(&event); err != nil {
-						p.workerPool.Submit(func() {
-							// ...
-						})
-					} else {
-						p.workerPool.Submit(func() {
-							// ...
-						})
-					}
-				case <-p.done:
-					return
-				}
-			}
+			p.handle()
 		}()
 	}
 }

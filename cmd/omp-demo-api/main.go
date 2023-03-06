@@ -11,19 +11,23 @@ import (
 func main() {
 
 	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	cfg := retranslator.Config{
-		ChannelSize:   512,
-		ConsumerCount: 2,
-		ConsumeSize:   10,
-		ProducerCount: 28,
-		WorkerCount:   2,
+		ChannelSize:    512,
+		ConsumerCount:  2,
+		ConsumeSize:    10,
+		ConsumeTimeout: 0,
+		ProducerCount:  28,
+		WorkerCount:    2,
+		Repo:           nil,
+		Sender:         nil,
 	}
 
 	retranslator := retranslator.NewRetranslator(cfg)
 	retranslator.Start()
 
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
 	<-sigs
+
+	retranslator.Close()
 }
