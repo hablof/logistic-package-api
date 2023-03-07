@@ -3,13 +3,12 @@ package retranslator
 import (
 	"time"
 
+	"github.com/hablof/logistic-package-api/internal/app/cleaner"
 	"github.com/hablof/logistic-package-api/internal/app/consumer"
 	"github.com/hablof/logistic-package-api/internal/app/producer"
 	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
-
-	"github.com/gammazero/workerpool"
 )
 
 type Retranslator interface {
@@ -20,9 +19,9 @@ type Retranslator interface {
 type Config struct {
 	ChannelSize uint64
 
-	ConsumerCount  uint64
-	ConsumeSize    uint64
-	ConsumeTimeout time.Duration
+	ConsumerCount   uint64
+	BatchSize       uint64
+	ConsumeInterval time.Duration
 
 	ProducerCount uint64
 	WorkerCount   int
@@ -32,40 +31,49 @@ type Config struct {
 }
 
 type retranslator struct {
-	events     chan model.PackageEvent
-	consumer   consumer.Consumer
-	producer   producer.Producer
-	workerPool *workerpool.WorkerPool
+	events   chan model.PackageEvent
+	consumer consumer.Consumer
+	producer producer.Producer
+	cleaner  cleaner.Cleaner
 }
 
 func NewRetranslator(cfg Config) Retranslator {
 	eventsChannel := make(chan model.PackageEvent, cfg.ChannelSize)
-	workerPool := workerpool.New(cfg.WorkerCount)
+	cleanerChannel := make(chan cleaner.PackageCleanerEvent, cfg.ChannelSize)
 
 	consumerCfg := consumer.ConsumerConfig{
-		ConsumeCount:  cfg.ConsumerCount,
-		EventsChannel: eventsChannel,
-		Repo:          cfg.Repo,
-		BatchSize:     cfg.ConsumeSize,
-		Timeout:       cfg.ConsumeTimeout,
+		ConsumeCount:    cfg.ConsumerCount,
+		EventsChannel:   eventsChannel,
+		Repo:            cfg.Repo,
+		BatchSize:       cfg.BatchSize,
+		ConsumeInterval: cfg.ConsumeInterval,
 	}
 
 	producerCfg := producer.ProducerConfig{
-		ProducerCount: cfg.ProducerCount,
-		Repo:          cfg.Repo,
-		Sender:        cfg.Sender,
-		EventsChannel: eventsChannel,
-		WorkerPool:    workerPool,
+		ProducerCount:  cfg.ProducerCount,
+		Repo:           cfg.Repo,
+		Sender:         cfg.Sender,
+		EventsChannel:  eventsChannel,
+		CleanerChannel: cleanerChannel,
+	}
+
+	cleanerCfg := cleaner.CleanerConfig{
+		WorkerCount:      cfg.WorkerCount,
+		CleanerBatchSize: cfg.BatchSize / 2,
+		Repo:             cfg.Repo,
+		CleanerChannel:   cleanerChannel,
+		CleanupInterval:  cfg.ConsumeInterval,
 	}
 
 	consumer := consumer.NewDbConsumer(consumerCfg)
 	producer := producer.NewKafkaProducer(producerCfg)
+	cleaner := cleaner.NewDbCleaner(cleanerCfg)
 
 	return &retranslator{
-		events:     eventsChannel,
-		consumer:   consumer,
-		producer:   producer,
-		workerPool: workerPool,
+		events:   eventsChannel,
+		consumer: consumer,
+		producer: producer,
+		cleaner:  cleaner,
 	}
 }
 
@@ -75,7 +83,10 @@ func (r *retranslator) Start() {
 }
 
 func (r *retranslator) Close() {
+	// closing order matters to
+	// implement At-least-once guarantee
+	// consumer -> producer -> cleaner
 	r.consumer.Close()
 	r.producer.Close()
-	r.workerPool.StopWait()
+	r.cleaner.Close()
 }

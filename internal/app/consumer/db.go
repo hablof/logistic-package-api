@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -19,47 +20,49 @@ type consumer struct {
 
 	repo repo.EventRepo
 
-	batchSize uint64
-	timeout   time.Duration
+	batchSize       uint64
+	consumeInterval time.Duration
 
-	done chan bool
-	wg   *sync.WaitGroup
+	cancel context.CancelFunc
+	wg     *sync.WaitGroup
 }
 
 type ConsumerConfig struct {
-	ConsumeCount  uint64
-	EventsChannel chan<- model.PackageEvent
-	Repo          repo.EventRepo
-	BatchSize     uint64
-	Timeout       time.Duration
+	ConsumeCount    uint64
+	EventsChannel   chan<- model.PackageEvent
+	Repo            repo.EventRepo
+	BatchSize       uint64
+	ConsumeInterval time.Duration
 }
 
 func NewDbConsumer(cfg ConsumerConfig) Consumer {
-
 	wg := &sync.WaitGroup{}
-	done := make(chan bool)
 
 	return &consumer{
-		consumerCount: cfg.ConsumeCount,
-		batchSize:     cfg.BatchSize,
-		timeout:       cfg.Timeout,
-		repo:          cfg.Repo,
-		eventsChannel: cfg.EventsChannel,
-		wg:            wg,
-		done:          done, // use ctx
+		cancel:          func() {},
+		consumerCount:   cfg.ConsumeCount,
+		batchSize:       cfg.BatchSize,
+		consumeInterval: cfg.ConsumeInterval,
+		repo:            cfg.Repo,
+		eventsChannel:   cfg.EventsChannel,
+		wg:              wg,
 	}
 }
 
 func (c *consumer) Start() {
+	ctx, cancel := context.WithCancel(context.Background())
+	c.cancel = cancel
+
 	for i := uint64(0); i < c.consumerCount; i++ {
 		c.wg.Add(1)
 
 		go func() {
 			defer c.wg.Done()
-			ticker := time.NewTicker(c.timeout)
+			ticker := time.NewTicker(c.consumeInterval)
 			for {
 				select {
 				case <-ticker.C:
+					// this case block not interrupted by ctx.Done(), so implements At-least-once
 					events, err := c.repo.Lock(c.batchSize)
 					if err != nil {
 						continue
@@ -67,7 +70,9 @@ func (c *consumer) Start() {
 					for _, event := range events {
 						c.eventsChannel <- event
 					}
-				case <-c.done:
+
+				case <-ctx.Done():
+					ticker.Stop()
 					return
 				}
 			}
@@ -76,6 +81,6 @@ func (c *consumer) Start() {
 }
 
 func (c *consumer) Close() {
-	close(c.done)
+	c.cancel()
 	c.wg.Wait()
 }
