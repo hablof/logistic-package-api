@@ -1,13 +1,15 @@
 package producer
 
 import (
+	"context"
+	"log"
 	"sync"
+	"time"
 
+	"github.com/hablof/logistic-package-api/internal/app/cleaner"
 	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
-
-	"github.com/gammazero/workerpool"
 )
 
 type Producer interface {
@@ -18,73 +20,84 @@ type Producer interface {
 type producer struct {
 	producerCount uint64
 
-	repo repo.EventRepo
+	cleanerChannel chan<- cleaner.PackageCleanerEvent
 
 	sender        sender.EventSender
 	eventsChannel <-chan model.PackageEvent
 
-	workerPool *workerpool.WorkerPool
-
-	wg   *sync.WaitGroup
-	done chan bool // use ctx
+	wg     *sync.WaitGroup
+	cancel context.CancelFunc
 }
 
 type ProducerConfig struct {
-	ProducerCount uint64
-	Repo          repo.EventRepo
-	Sender        sender.EventSender
-	EventsChannel <-chan model.PackageEvent
-	WorkerPool    *workerpool.WorkerPool
+	ProducerCount  uint64
+	Repo           repo.EventRepo
+	Sender         sender.EventSender
+	CleanerChannel chan<- cleaner.PackageCleanerEvent
+	EventsChannel  <-chan model.PackageEvent
 }
 
 func NewKafkaProducer(cfg ProducerConfig) Producer {
 
 	wg := &sync.WaitGroup{}
-	done := make(chan bool)
 
 	return &producer{
-		producerCount: cfg.ProducerCount,
-		repo:          cfg.Repo,
-		sender:        cfg.Sender,
-		eventsChannel: cfg.EventsChannel,
-		workerPool:    cfg.WorkerPool,
-		wg:            wg,
-		done:          done, // use ctx
+		producerCount:  cfg.ProducerCount,
+		cleanerChannel: cfg.CleanerChannel,
+		sender:         cfg.Sender,
+		eventsChannel:  cfg.EventsChannel,
+		wg:             wg,
+		cancel: func() {
+		},
 	}
 }
 
-func (p *producer) handle() {
+func (p *producer) runHandler(ctx context.Context) {
 	for {
 		select {
-		case event := <-p.eventsChannel: // TODO end work on channel close
+		case event := <-p.eventsChannel:
 			switch err := p.sender.Send(&event); err {
 			case nil:
-				p.workerPool.Submit(func() {
-					p.repo.Remove([]uint64{event.ID})
-				})
+				p.cleanerChannel <- cleaner.PackageCleanerEvent{
+					Status:  cleaner.Ok,
+					EventID: event.ID,
+				}
 
 			default:
-				p.workerPool.Submit(func() {
-					p.repo.Unlock([]uint64{event.ID})
-				})
+				log.Println(err)
+				p.cleanerChannel <- cleaner.PackageCleanerEvent{
+					Status:  cleaner.Fail,
+					EventID: event.ID,
+				}
 			}
-		case <-p.done:
+		case <-ctx.Done():
 			return
 		}
 	}
 }
 
 func (p *producer) Start() {
+	ctx, cancel := context.WithCancel(context.Background())
+	p.cancel = cancel
+
 	for i := uint64(0); i < p.producerCount; i++ {
 		p.wg.Add(1)
 		go func() {
 			defer p.wg.Done()
-			p.handle()
+			p.runHandler(ctx)
 		}()
 	}
 }
 
 func (p *producer) Close() {
-	close(p.done)
+
+	// if producer.Close() called after consumer close finished, new entity in channel will never occures
+	// len(c.eventsChannel) == 0 means handler return by <- ctx.Done() implements At-least-once guarantee
+
+	for len(p.eventsChannel) != 0 {
+		time.Sleep(250 * time.Millisecond)
+	}
+
+	p.cancel()
 	p.wg.Wait()
 }
