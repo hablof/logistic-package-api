@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
+	"github.com/hablof/logistic-package-api/internal/app/ordermanager"
 	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
@@ -22,19 +23,22 @@ type producer struct {
 
 	cleanerChannel chan<- cleaner.PackageCleanerEvent
 
-	sender        sender.EventSender
-	eventsChannel <-chan model.PackageEvent
+	maximumKeepOrderAttempts model.TimesDefered
+	orderManager             ordermanager.OrderManager
+	sender                   sender.EventSender
+	eventsChannel            chan model.PackageEvent
 
 	wg     *sync.WaitGroup
 	cancel context.CancelFunc
 }
 
 type ProducerConfig struct {
-	ProducerCount  uint64
-	Repo           repo.EventRepo
-	Sender         sender.EventSender
-	CleanerChannel chan<- cleaner.PackageCleanerEvent
-	EventsChannel  <-chan model.PackageEvent
+	maximumKeepOrderAttempts model.TimesDefered
+	ProducerCount            uint64
+	Repo                     repo.EventRepo
+	Sender                   sender.EventSender
+	CleanerChannel           chan<- cleaner.PackageCleanerEvent
+	EventsChannel            chan model.PackageEvent
 }
 
 func NewKafkaProducer(cfg ProducerConfig) Producer {
@@ -42,11 +46,13 @@ func NewKafkaProducer(cfg ProducerConfig) Producer {
 	wg := &sync.WaitGroup{}
 
 	return &producer{
-		producerCount:  cfg.ProducerCount,
-		cleanerChannel: cfg.CleanerChannel,
-		sender:         cfg.Sender,
-		eventsChannel:  cfg.EventsChannel,
-		wg:             wg,
+		producerCount:            cfg.ProducerCount,
+		cleanerChannel:           cfg.CleanerChannel,
+		maximumKeepOrderAttempts: cfg.maximumKeepOrderAttempts,
+		orderManager:             ordermanager.NewOrderManager(),
+		sender:                   cfg.Sender,
+		eventsChannel:            cfg.EventsChannel,
+		wg:                       wg,
 		cancel: func() {
 		},
 	}
@@ -56,20 +62,35 @@ func (p *producer) runHandler(ctx context.Context) {
 	for {
 		select {
 		case event := <-p.eventsChannel:
+			if !p.orderManager.ApproveOrder(event) {
+				if event.Defered < p.maximumKeepOrderAttempts {
+					event.Defered++
+					p.eventsChannel <- event
+					continue // !!!
+				}
+
+				log.Printf("failed to keep right order with event %v", event)
+			}
+
 			switch err := p.sender.Send(&event); err {
 			case nil:
+				if err := p.orderManager.RegisterEvent(event); err != nil {
+					log.Printf("event %v registration in ordermanager error: %v", event, err)
+				}
+
 				p.cleanerChannel <- cleaner.PackageCleanerEvent{
 					Status:  cleaner.Ok,
 					EventID: event.ID,
 				}
 
 			default:
-				log.Println(err)
+				log.Println(event, err)
 				p.cleanerChannel <- cleaner.PackageCleanerEvent{
 					Status:  cleaner.Fail,
 					EventID: event.ID,
 				}
 			}
+
 		case <-ctx.Done():
 			return
 		}

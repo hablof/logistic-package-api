@@ -4,6 +4,8 @@ type EventType uint8
 
 type EventStatus uint8
 
+type TimesDefered uint8
+
 const (
 	Created EventType = iota
 	Updated
@@ -11,7 +13,7 @@ const (
 )
 
 const (
-	Deferred EventStatus = iota
+	WasDeferred EventStatus = iota
 	Processed
 )
 
@@ -24,8 +26,9 @@ type Package struct {
 }
 
 type PackageEvent struct {
-	ID     uint64
-	Type   EventType
-	Status EventStatus
-	Entity *Package
+	ID      uint64
+	Type    EventType
+	Status  EventStatus
+	Defered TimesDefered
+	Entity  *Package
 }
