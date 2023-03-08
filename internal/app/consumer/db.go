@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"log"
 	"sync"
 	"time"
 
@@ -23,6 +24,7 @@ type consumer struct {
 	batchSize       uint64
 	consumeInterval time.Duration
 
+	ctx    context.Context
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
 }
@@ -50,33 +52,38 @@ func NewDbConsumer(cfg ConsumerConfig) Consumer {
 }
 
 func (c *consumer) Start() {
-	ctx, cancel := context.WithCancel(context.Background())
-	c.cancel = cancel
+	c.ctx, c.cancel = context.WithCancel(context.Background())
 
 	for i := uint64(0); i < c.consumerCount; i++ {
 		c.wg.Add(1)
 
 		go func() {
 			defer c.wg.Done()
-			ticker := time.NewTicker(c.consumeInterval)
-			for {
-				select {
-				case <-ticker.C:
-					// this case block not interrupted by ctx.Done(), so implements At-least-once
-					events, err := c.repo.Lock(c.batchSize)
-					if err != nil {
-						continue
-					}
-					for _, event := range events {
-						c.eventsChannel <- event
-					}
-
-				case <-ctx.Done():
-					ticker.Stop()
-					return
-				}
-			}
+			c.runHandler(c.ctx)
 		}()
+	}
+
+	log.Printf("consumer started with %d workers", c.consumerCount)
+}
+
+func (c *consumer) runHandler(ctx context.Context) {
+	ticker := time.NewTicker(c.consumeInterval)
+	for {
+		select {
+		// this case block not interrupted by ctx.Done(), so implements At-least-once
+		case <-ticker.C:
+			events, err := c.repo.Lock(c.batchSize)
+			if err != nil {
+				continue
+			}
+			for _, event := range events {
+				c.eventsChannel <- event
+			}
+
+		case <-ctx.Done():
+			ticker.Stop()
+			return
+		}
 	}
 }
 

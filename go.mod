@@ -21,6 +21,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	github.com/gammazero/workerpool v1.1.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
+	github.com/stretchr/testify v1.8.2
 )
 
 replace github.com/ozonmp/omp-template-api/pkg/omp-template-api => ./pkg/omp-template-api

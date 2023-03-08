@@ -28,6 +28,7 @@ type Cleaner interface {
 }
 
 type cleaner struct {
+	cleanerCount          int
 	cleanerChannel        <-chan PackageCleanerEvent
 	repo                  repo.EventRepo
 	batchSize             uint64
@@ -36,7 +37,7 @@ type cleaner struct {
 
 	// removeQueue []uint64
 	// unlockQueue []uint64
-
+	ctx    context.Context
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
 }
@@ -54,6 +55,7 @@ func NewDbCleaner(cfg CleanerConfig) Cleaner {
 	wg := &sync.WaitGroup{}
 
 	return &cleaner{
+		cleanerCount:          cfg.WorkerCount,
 		cleanerChannel:        cfg.CleanerChannel,
 		repo:                  cfg.Repo,
 		batchSize:             cfg.CleanerBatchSize,
@@ -75,24 +77,17 @@ func (c *cleaner) runHandler(ctx context.Context) {
 		select {
 		case <-ticker.C:
 			if len(removeQueue) > 0 {
-				c.workerPool.Submit(func() {
-					if err := c.repo.Remove(removeQueue); err != nil {
-						log.Println(err)
-					}
-				})
+				c.submitToRemove(removeQueue)
 				removeQueue = make([]uint64, 0, c.batchSize)
 			}
 
 			if len(unlockQueue) > 0 {
-				c.workerPool.Submit(func() {
-					if err := c.repo.Unlock(unlockQueue); err != nil {
-						log.Println(err)
-					}
-				})
+				c.submitToUnlock(unlockQueue)
 				unlockQueue = make([]uint64, 0, c.batchSize)
 			}
 
 		case event := <-c.cleanerChannel:
+
 			switch event.Status {
 			case Ok:
 				removeQueue = append(removeQueue, event.EventID)
@@ -101,20 +96,12 @@ func (c *cleaner) runHandler(ctx context.Context) {
 			}
 
 			if len(removeQueue) >= int(c.batchSize) {
-				c.workerPool.Submit(func() {
-					if err := c.repo.Remove(removeQueue); err != nil {
-						log.Println(err)
-					}
-				})
+				c.submitToRemove(removeQueue)
 				removeQueue = make([]uint64, 0, c.batchSize)
 			}
 
 			if len(unlockQueue) >= int(c.batchSize) {
-				c.workerPool.Submit(func() {
-					if err := c.repo.Unlock(unlockQueue); err != nil {
-						log.Println(err)
-					}
-				})
+				c.submitToUnlock(unlockQueue)
 				unlockQueue = make([]uint64, 0, c.batchSize)
 			}
 			ticker.Reset(c.forcedCleanupInterval)
@@ -122,39 +109,49 @@ func (c *cleaner) runHandler(ctx context.Context) {
 		case <-ctx.Done():
 			ticker.Stop()
 			if len(removeQueue) > 0 {
-				c.workerPool.Submit(func() {
-					if err := c.repo.Remove(removeQueue); err != nil {
-						log.Println(err)
-					}
-				})
-				removeQueue = make([]uint64, 0, c.batchSize)
+				c.submitToRemove(removeQueue)
 			}
 
 			if len(unlockQueue) > 0 {
-				c.workerPool.Submit(func() {
-					if err := c.repo.Unlock(unlockQueue); err != nil {
-						log.Println(err)
-					}
-				})
-				unlockQueue = make([]uint64, 0, c.batchSize)
+				c.submitToUnlock(unlockQueue)
 			}
 			return
 		}
 	}
 }
 
-func (c *cleaner) Start() {
-	ctx, cancel := context.WithCancel(context.Background())
-	c.cancel = cancel
+func (c *cleaner) submitToUnlock(unlockQueue []uint64) {
+	sending := make([]uint64, len(unlockQueue))
+	copy(sending, unlockQueue)
+	c.workerPool.Submit(func() {
+		if err := c.repo.Unlock(sending); err != nil {
+			log.Println(err)
+		}
+	})
+}
 
-	for i := 0; i < c.workerPool.Size(); i++ {
+func (c *cleaner) submitToRemove(removeQueue []uint64) {
+	sending := make([]uint64, len(removeQueue))
+	copy(sending, removeQueue)
+	c.workerPool.Submit(func() {
+		if err := c.repo.Remove(sending); err != nil {
+			log.Println(err)
+		}
+	})
+}
+
+func (c *cleaner) Start() {
+	c.ctx, c.cancel = context.WithCancel(context.Background())
+
+	for i := 0; i < c.cleanerCount; i++ {
 		c.wg.Add(1)
 		go func() {
 			defer c.wg.Done()
-			c.runHandler(ctx)
+			c.runHandler(c.ctx)
 		}()
 	}
 
+	log.Printf("cleaner started with %d workers", c.cleanerCount)
 }
 
 func (c *cleaner) Close() {

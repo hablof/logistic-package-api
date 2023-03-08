@@ -13,7 +13,7 @@ const (
 )
 
 const (
-	WasDeferred EventStatus = iota
+	Deferred EventStatus = iota
 	Processed
 )
 

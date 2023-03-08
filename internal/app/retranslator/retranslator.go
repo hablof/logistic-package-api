@@ -1,6 +1,7 @@
 package retranslator
 
 import (
+	"log"
 	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
@@ -16,7 +17,7 @@ type Retranslator interface {
 	Close()
 }
 
-type Config struct {
+type RetranslatorConfig struct {
 	ChannelSize uint64
 
 	ConsumerCount   uint64
@@ -37,7 +38,7 @@ type retranslator struct {
 	cleaner  cleaner.Cleaner
 }
 
-func NewRetranslator(cfg Config) Retranslator {
+func NewRetranslator(cfg RetranslatorConfig) Retranslator {
 	eventsChannel := make(chan model.PackageEvent, cfg.ChannelSize)
 	cleanerChannel := make(chan cleaner.PackageCleanerEvent, cfg.ChannelSize)
 
@@ -80,6 +81,8 @@ func NewRetranslator(cfg Config) Retranslator {
 func (r *retranslator) Start() {
 	r.producer.Start()
 	r.consumer.Start()
+	r.cleaner.Start()
+	log.Println("retranslator started")
 }
 
 func (r *retranslator) Close() {
