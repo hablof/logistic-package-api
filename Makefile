@@ -4,4 +4,8 @@ build:
 
 .PHONY: test
 test:
-	go test -v ./...
+	go test -v -race ./internal/app/retranslator
+
+.PHONY: run
+run:
+	go run ./cmd/logistic-package-api/main.go

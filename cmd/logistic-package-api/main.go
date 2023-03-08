@@ -4,8 +4,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/retranslator"
+	"github.com/hablof/logistic-package-api/internal/mocks"
 )
 
 func main() {
@@ -13,15 +15,15 @@ func main() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
-	cfg := retranslator.Config{
+	cfg := retranslator.RetranslatorConfig{
 		ChannelSize:     512,
 		ConsumerCount:   2,
 		BatchSize:       10,
-		ConsumeInterval: 0,
+		ConsumeInterval: 2 * time.Second,
 		ProducerCount:   28,
 		WorkerCount:     2,
-		Repo:            nil,
-		Sender:          nil,
+		Repo:            &mocks.MockEventRepo{},
+		Sender:          &mocks.MockEventSender{},
 	}
 
 	retranslator := retranslator.NewRetranslator(cfg)

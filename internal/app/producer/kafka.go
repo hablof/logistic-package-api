@@ -44,12 +44,13 @@ type ProducerConfig struct {
 func NewKafkaProducer(cfg ProducerConfig) Producer {
 
 	wg := &sync.WaitGroup{}
+	orderManager := ordermanager.NewOrderManager()
 
 	return &producer{
 		producerCount:            cfg.ProducerCount,
 		cleanerChannel:           cfg.CleanerChannel,
 		maximumKeepOrderAttempts: cfg.maximumKeepOrderAttempts,
-		orderManager:             ordermanager.NewOrderManager(),
+		orderManager:             orderManager,
 		sender:                   cfg.Sender,
 		eventsChannel:            cfg.EventsChannel,
 		wg:                       wg,
@@ -58,25 +59,26 @@ func NewKafkaProducer(cfg ProducerConfig) Producer {
 	}
 }
 
+// TODO check event.Entity != nil
 func (p *producer) runHandler(ctx context.Context) {
 	for {
 		select {
 		case event := <-p.eventsChannel:
-			if !p.orderManager.ApproveOrder(event) {
-				if event.Defered < p.maximumKeepOrderAttempts {
-					event.Defered++
-					p.eventsChannel <- event
-					continue // !!!
-				}
+			// if !p.orderManager.ApproveOrder(event) {
+			// 	if event.Defered < p.maximumKeepOrderAttempts {
+			// 		event.Defered++
+			// 		p.eventsChannel <- event
+			// 		continue // !!!
+			// 	}
 
-				log.Printf("failed to keep right order with event %v", event)
-			}
+			// 	log.Printf("failed to keep right order with event %v", event)
+			// }
 
 			switch err := p.sender.Send(&event); err {
 			case nil:
-				if err := p.orderManager.RegisterEvent(event); err != nil {
-					log.Printf("event %v registration in ordermanager error: %v", event, err)
-				}
+				// if err := p.orderManager.RegisterEvent(event); err != nil {
+				// 	log.Printf("event %v registration in ordermanager error: %v", event, err)
+				// }
 
 				p.cleanerChannel <- cleaner.PackageCleanerEvent{
 					Status:  cleaner.Ok,
@@ -108,6 +110,8 @@ func (p *producer) Start() {
 			p.runHandler(ctx)
 		}()
 	}
+
+	log.Printf("producer started with %d workers", p.producerCount)
 }
 
 func (p *producer) Close() {

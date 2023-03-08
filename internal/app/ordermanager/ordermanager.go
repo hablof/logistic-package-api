@@ -18,13 +18,13 @@ type OrderManager interface {
 
 func NewOrderManager() OrderManager {
 	return &orderManager{
-		mu:       sync.Mutex{},
-		ordermap: map[uint64]model.EventType{},
+		mu:       &sync.Mutex{},
+		ordermap: make(map[uint64]model.EventType),
 	}
 }
 
 type orderManager struct {
-	mu       sync.Mutex
+	mu       *sync.Mutex
 	ordermap map[uint64]model.EventType // PackageEvent.Entity.ID -> PackageEvent.EventType
 }
 
