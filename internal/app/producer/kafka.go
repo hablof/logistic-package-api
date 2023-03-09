@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
-	"github.com/hablof/logistic-package-api/internal/app/ordermanager"
 	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
@@ -23,37 +22,37 @@ type producer struct {
 
 	cleanerChannel chan<- cleaner.PackageCleanerEvent
 
-	maximumKeepOrderAttempts model.TimesDefered
-	orderManager             ordermanager.OrderManager
-	sender                   sender.EventSender
-	eventsChannel            chan model.PackageEvent
+	// maximumKeepOrderAttempts model.TimesDefered
+	// orderManager             ordermanager.OrderManager
+	sender        sender.EventSender
+	eventsChannel chan model.PackageEvent
 
 	wg     *sync.WaitGroup
 	cancel context.CancelFunc
 }
 
 type ProducerConfig struct {
-	maximumKeepOrderAttempts model.TimesDefered
-	ProducerCount            uint64
-	Repo                     repo.EventRepo
-	Sender                   sender.EventSender
-	CleanerChannel           chan<- cleaner.PackageCleanerEvent
-	EventsChannel            chan model.PackageEvent
+	// maximumKeepOrderAttempts model.TimesDefered
+	ProducerCount  uint64
+	Repo           repo.EventRepo
+	Sender         sender.EventSender
+	CleanerChannel chan<- cleaner.PackageCleanerEvent
+	EventsChannel  chan model.PackageEvent
 }
 
 func NewKafkaProducer(cfg ProducerConfig) Producer {
 
 	wg := &sync.WaitGroup{}
-	orderManager := ordermanager.NewOrderManager()
+	// orderManager := ordermanager.NewOrderManager()
 
 	return &producer{
-		producerCount:            cfg.ProducerCount,
-		cleanerChannel:           cfg.CleanerChannel,
-		maximumKeepOrderAttempts: cfg.maximumKeepOrderAttempts,
-		orderManager:             orderManager,
-		sender:                   cfg.Sender,
-		eventsChannel:            cfg.EventsChannel,
-		wg:                       wg,
+		producerCount:  cfg.ProducerCount,
+		cleanerChannel: cfg.CleanerChannel,
+		// maximumKeepOrderAttempts: cfg.maximumKeepOrderAttempts,
+		// orderManager:             orderManager,
+		sender:        cfg.Sender,
+		eventsChannel: cfg.EventsChannel,
+		wg:            wg,
 		cancel: func() {
 		},
 	}

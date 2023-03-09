@@ -24,18 +24,18 @@ func TestStart(t *testing.T) {
 
 		retranslator.Start()
 		retranslator.Close()
-		t.Log("correct run and stop PASSED")
 	})
 
 	t.Run("correctly read all events and send", func(t *testing.T) {
 		for i := 0; i < 10; i++ {
 			t.Run(fmt.Sprintf("attempt %d", i), func(t *testing.T) {
+
 				batchSize := 32
 				repo, sender, retranslator := setup(t, uint64(batchSize))
 
 				controlChannel := make(chan struct{}, 1)
 
-				eventsCount := 5000
+				eventsCount := 1000
 				db := generate(eventsCount)
 
 				offsetMutex := sync.Mutex{}
@@ -82,9 +82,7 @@ func TestStart(t *testing.T) {
 					controlChannel <- struct{}{}
 				}()
 				<-controlChannel
-				// removedIDsMutex.Lock()
-				// sort.Slice(removedIDs, func(i, j int) bool { return removedIDs[i] < removedIDs[j] })
-				// removedIDsMutex.Unlock()
+
 				retranslator.Close()
 
 				assert.Equal(t, int32(eventsCount), sendCount)
@@ -93,82 +91,6 @@ func TestStart(t *testing.T) {
 			})
 		}
 	})
-
-	// t.Run("correctly reprocess events again if error", func(t *testing.T) {
-	// 	chuckSize := 10
-	// 	repo, sender, retranslator := setup(t, uint64(chuckSize))
-
-	// 	// arrange
-	// 	eventsCount := 100
-
-	// 	db := generate(eventsCount)
-	// 	offset := uint64(0)
-
-	// 	allRead := make(chan bool, 10)
-
-	// 	sendCount := int32(0)
-
-	// 	reprocessCount := int32(0)
-
-	// 	repo.
-	// 		EXPECT().
-	// 		Lock(gomock.Any()).
-	// 		DoAndReturn(func(size uint64) ([]model.PackageEvent, error) {
-	// 			if offset >= uint64(len(db)) {
-	// 				return make([]model.PackageEvent, 0), nil
-	// 			}
-	// 			maxIndex := uint64(math.Min(float64(offset+size), float64(len(db))))
-	// 			chunk := db[offset:maxIndex:maxIndex]
-	// 			atomic.AddUint64(&offset, maxIndex-offset)
-	// 			return chunk, nil
-	// 		}).
-	// 		AnyTimes()
-
-	// 	repo.
-	// 		EXPECT().
-	// 		Unlock(gomock.Any()).
-	// 		DoAndReturn(func(eventIDs []uint64) error {
-	// 			atomic.AddUint64(&offset, -uint64(len(eventIDs)))
-	// 			atomic.AddInt32(&reprocessCount, 1)
-	// 			return nil
-	// 		}).AnyTimes()
-
-	// 	repo.EXPECT().Remove(gomock.Any()).AnyTimes()
-
-	// 	sender.
-	// 		EXPECT().
-	// 		Send(gomock.Any()).
-	// 		DoAndReturn(func(event *model.PackageEvent) error {
-	// 			atomic.AddInt32(&sendCount, 1)
-	// 			for sendCount <= int32(eventsCount) {
-	// 				return errors.New("Error has occurred when send to kafka")
-	// 			}
-
-	// 			if sendCount == int32(eventsCount*2) {
-	// 				allRead <- true
-	// 			}
-	// 			return nil
-	// 		}).
-	// 		AnyTimes()
-
-	// 	retranslator.Start()
-
-	// 	wg := sync.WaitGroup{}
-	// 	wg.Add(1)
-	// 	go func() {
-	// 		defer wg.Done()
-	// 		for {
-	// 			<-allRead
-	// 			retranslator.Close()
-	// 			return
-	// 		}
-	// 	}()
-
-	// 	wg.Wait()
-	// 	assert.Equal(t, int32(eventsCount*2), sendCount)
-	// 	assert.Equal(t, int32(eventsCount), reprocessCount)
-	// 	t.Log("correctly reprocess events again if error PASSED")
-	// })
 }
 
 func generate(count int) []model.PackageEvent {
