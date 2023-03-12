@@ -24,7 +24,6 @@ type consumer struct {
 	batchSize       uint64
 	consumeInterval time.Duration
 
-	ctx    context.Context
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
 }
@@ -52,14 +51,14 @@ func NewDbConsumer(cfg ConsumerConfig) Consumer {
 }
 
 func (c *consumer) Start() {
-	c.ctx, c.cancel = context.WithCancel(context.Background())
-
+	ctx, cancel := context.WithCancel(context.Background())
+	c.cancel = cancel
 	for i := uint64(0); i < c.consumerCount; i++ {
 		c.wg.Add(1)
 
 		go func() {
 			defer c.wg.Done()
-			c.runHandler(c.ctx)
+			c.runHandler(ctx)
 		}()
 	}
 
