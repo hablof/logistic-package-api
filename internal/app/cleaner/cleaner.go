@@ -37,7 +37,6 @@ type cleaner struct {
 
 	// removeQueue []uint64
 	// unlockQueue []uint64
-	ctx    context.Context
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
 }
@@ -141,13 +140,13 @@ func (c *cleaner) submitToRemove(removeQueue []uint64) {
 }
 
 func (c *cleaner) Start() {
-	c.ctx, c.cancel = context.WithCancel(context.Background())
-
+	ctx, cf := context.WithCancel(context.Background())
+	c.cancel = cf
 	for i := 0; i < c.cleanerCount; i++ {
 		c.wg.Add(1)
 		go func() {
 			defer c.wg.Done()
-			c.runHandler(c.ctx)
+			c.runHandler(ctx)
 		}()
 	}
 
