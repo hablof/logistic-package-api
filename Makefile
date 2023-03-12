@@ -1,24 +1,24 @@
-GO_VERSION_SHORT:=$(shell echo `go version` | sed -E 's/.* go(.*) .*/\1/g')
-ifneq ("1.16","$(shell printf "$(GO_VERSION_SHORT)\n1.16" | sort -V | head -1)")
-$(error NEED GO VERSION >= 1.16. Found: $(GO_VERSION_SHORT))
-endif
+# GO_VERSION_SHORT:=$(shell echo `go version` | sed -E 's/.* go(.*) .*/\1/g')
+# ifneq ("1.16","$(shell printf "$(GO_VERSION_SHORT)\n1.16" | sort -V | head -1)")
+# $(error NEED GO VERSION >= 1.16. Found: $(GO_VERSION_SHORT))
+# endif
 
-export GO111MODULE=on
+# export GO111MODULE=on
 
-SERVICE_NAME=omp-template-api
-SERVICE_PATH=ozonmp/omp-template-api
+SERVICE_NAME=logistic-package-api
+SERVICE_PATH=hablof/logistic-package-api
 
-PGV_VERSION:="v0.6.1"
-BUF_VERSION:="v0.56.0"
+# PGV_VERSION:="v0.6.1"
+# BUF_VERSION:="v0.56.0"
 
-OS_NAME=$(shell uname -s)
-OS_ARCH=$(shell uname -m)
-GO_BIN=$(shell go env GOPATH)/bin
-BUF_EXE=$(GO_BIN)/buf$(shell go env GOEXE)
+# OS_NAME=$(shell uname -s)
+# OS_ARCH=$(shell uname -m)
+# GO_BIN=$(shell go env GOPATH)/bin
+# BUF_EXE=$(GO_BIN)/buf$(shell go env GOEXE)
 
-ifeq ("NT", "$(findstring NT,$(OS_NAME))")
-OS_NAME=Windows
-endif
+# ifeq ("NT", "$(findstring NT,$(OS_NAME))")
+# OS_NAME=Windows
+# endif
 
 .PHONY: run
 run:
@@ -60,7 +60,7 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
 	cd pkg/$(SERVICE_NAME) && ls go.mod || (go mod init github.com/$(SERVICE_PATH)/pkg/$(SERVICE_NAME) && go mod tidy)
 
 .generate-finalize-python:
-	find pypkg/omp-template-api -type d -exec touch {}/__init__.py \;
+	find pypkg/logistic-package-api -type d -exec touch {}/__init__.py \;
 
 # ----------------------------------------------------------------
 

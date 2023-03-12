@@ -119,7 +119,7 @@ Graylog is a leading centralized log management solution for capturing, storing,
 For the convenience of working with the database, you can use the [pgcli](https://github.com/dbcli/pgcli) utility. Migrations are rolled out when the service starts. migrations are located in the **./migrations** directory and are created using the [goose](https://github.com/pressly/goose) tool.
 
 ```sh
-$ pgcli "postgresql://docker:docker@localhost:5432/omp_template_api"
+$ pgcli "postgresql://docker:docker@localhost:5432/logistic_package_api"
 ```
 
 ### Python client
@@ -129,7 +129,7 @@ $ python -m venv .venv
 $ . .venv/bin/activate
 $ make deps
 $ make generate
-$ cd pypkg/omp-template-api
+$ cd pypkg/logistic-package-api
 $ python setup.py install
 $ cd ../..
 $ docker-compose up -d

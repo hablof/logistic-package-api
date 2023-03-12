@@ -10,32 +10,32 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/ozonmp/omp-template-api/internal/repo"
+	"github.com/hablof/logistic-package-api/internal/repo"
 
-	pb "github.com/ozonmp/omp-template-api/pkg/omp-template-api"
+	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 )
 
 var (
 	totalTemplateNotFound = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "omp_template_api_template_not_found_total",
+		Name: "logistic_package_api_template_not_found_total",
 		Help: "Total number of templates that were not found",
 	})
 )
 
 type templateAPI struct {
-	pb.UnimplementedOmpTemplateApiServiceServer
+	pb.UnimplementedLogisticPackageApiServiceServer
 	repo repo.Repo
 }
 
-// NewTemplateAPI returns api of omp-template-api service
-func NewTemplateAPI(r repo.Repo) pb.OmpTemplateApiServiceServer {
+// NewTemplateAPI returns api of logistic-package-api service
+func NewTemplateAPI(r repo.Repo) pb.LogisticPackageApiServiceServer {
 	return &templateAPI{repo: r}
 }
 
 func (o *templateAPI) DescribeTemplateV1(
 	ctx context.Context,
-	req *pb.DescribeTemplateV1Request,
-) (*pb.DescribeTemplateV1Response, error) {
+	req *pb.DescribePackageV1Request,
+) (*pb.DescribePackageV1Response, error) {
 
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("DescribeTemplateV1 - invalid argument")
@@ -43,15 +43,15 @@ func (o *templateAPI) DescribeTemplateV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	template, err := o.repo.DescribeTemplate(ctx, req.TemplateId)
+	mypackage, err := o.repo.DescribeTemplate(ctx, req.PackageId)
 	if err != nil {
 		log.Error().Err(err).Msg("DescribeTemplateV1 -- failed")
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	if template == nil {
-		log.Debug().Uint64("templateId", req.TemplateId).Msg("template not found")
+	if mypackage == nil {
+		log.Debug().Uint64("templateId", req.PackageId).Msg("template not found")
 		totalTemplateNotFound.Inc()
 
 		return nil, status.Error(codes.NotFound, "template not found")
@@ -59,10 +59,10 @@ func (o *templateAPI) DescribeTemplateV1(
 
 	log.Debug().Msg("DescribeTemplateV1 - success")
 
-	return &pb.DescribeTemplateV1Response{
-		Value: &pb.Template{
-			Id:  template.ID,
-			Foo: template.Foo,
+	return &pb.DescribePackageV1Response{
+		Value: &pb.Package{
+			Id:  mypackage.ID,
+			Foo: mypackage.Foo,
 		},
 	}, nil
 }

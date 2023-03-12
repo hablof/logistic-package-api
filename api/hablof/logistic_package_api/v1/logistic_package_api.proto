@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package ozonmp.logistic_package_api.v1;
+
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/hablof/logistic-package-api/pkg/logistic-package-api;logistic_package_api";
+
+// OmpTemplateApiService - Service for working with templates
+service LogisticPackageApiService {
+  // DescribeTemplateV1 - Describe a template
+  rpc DescribePackageV1(DescribePackageV1Request) returns (DescribePackageV1Response) {
+    option (google.api.http) = {
+      get: "/v1/packages/{package_id}"
+    };
+  }
+}
+
+message Package {
+  uint64 id  = 1;
+  uint64 foo = 2;
+  google.protobuf.Timestamp created = 3;
+}
+
+message DescribePackageV1Request {
+  uint64 package_id = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message DescribePackageV1Response {
+  Package value = 1;
+}
