@@ -93,3 +93,7 @@ build-go: generate-go .build
 			-X 'github.com/$(SERVICE_PATH)/internal/config.commitHash=$(COMMIT_HASH)' \
 		" \
 		-o ./bin/grpc-server$(shell go env GOEXE) ./cmd/grpc-server/main.go
+
+.PHONY: run
+run:
+	go run ./cmd/logistic-package-api/main.go
