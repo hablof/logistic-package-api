@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package ozonmp.logistic_package_api.v1;
+package hablof.logistic_package_api.v1;
 
 import "validate/validate.proto";
 import "google/api/annotations.proto";
@@ -10,24 +10,73 @@ option go_package = "github.com/hablof/logistic-package-api/pkg/logistic-package
 
 // OmpTemplateApiService - Service for working with templates
 service LogisticPackageApiService {
-  // DescribeTemplateV1 - Describe a template
+
+  rpc CreatePackageV1 (CreatePackageV1Request) returns (CreatePackageV1Response){
+    option (google.api.http) = {
+      post: "/v1/packages"
+      body: "*"
+    };
+  }
+  
   rpc DescribePackageV1(DescribePackageV1Request) returns (DescribePackageV1Response) {
     option (google.api.http) = {
-      get: "/v1/packages/{package_id}"
+      get: "/v1/packages/{PackageID}"
+    };
+  }
+
+  rpc ListPackagesV1 (ListPackagesV1Request) returns (ListPackagesV1Response){
+    option (google.api.http) = {
+      get: "/v1/packages"
+    };
+  }
+
+  rpc RemovePackageV1 (RemovePackageV1Request) returns (RemovePackageV1Response){
+    option (google.api.http) = {
+      delete: "/v1/packages/{PackageID}"
     };
   }
 }
 
 message Package {
-  uint64 id  = 1;
-  uint64 foo = 2;
-  google.protobuf.Timestamp created = 3;
+  uint64 ID  = 1;
+  string Title = 2;
+	string Material = 3;
+	float MaximumVolume = 4;  //cm^3
+	bool Reusable = 5;
+  google.protobuf.Timestamp Created = 6;
+}
+
+message CreatePackageV1Request {
+  string Title = 1 [(validate.rules).string.max_len = 32];
+	string Material = 2 [(validate.rules).string.max_len = 32];
+	float MaximumVolume = 3 [(validate.rules).float.gte = 0];  
+	bool Reusable = 4; 
+}
+
+message CreatePackageV1Response {
+  uint64 ID  = 1;
 }
 
 message DescribePackageV1Request {
-  uint64 package_id = 1 [(validate.rules).uint64.gt = 0];
+  uint64 PackageID = 1 [(validate.rules).uint64.gt = 0];
 }
 
 message DescribePackageV1Response {
-  Package value = 1;
+  Package Value = 1;
+}
+
+message ListPackagesV1Request {
+  uint64 Offset = 1 [(validate.rules).uint64.gte = 0];
+}
+
+message ListPackagesV1Response {
+  repeated string PackageTitle = 1;
+}
+
+message RemovePackageV1Request {
+  uint64 PackageID = 1 [(validate.rules).uint64.gt = 0];
+}
+
+message RemovePackageV1Response {
+  bool Suc = 1;
 }

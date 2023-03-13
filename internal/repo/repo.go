@@ -2,15 +2,19 @@ package repo
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 
 	"github.com/hablof/logistic-package-api/internal/model"
 )
 
-// Repo is DAO for Template
+// Repo is DAO for Package
 type Repo interface {
-	DescribeTemplate(ctx context.Context, templateID uint64) (*model.Template, error)
+	CreatePackage(ctx context.Context, pack *model.Package) (uint64, error)
+	DescribePackage(ctx context.Context, packageID uint64) (*model.Package, error)
+	ListPackages(ctx context.Context, offset uint64) ([]*model.Package, error)
+	RemovePackage(ctx context.Context, packageID uint64) error
 }
 
 type repo struct {
@@ -23,6 +27,18 @@ func NewRepo(db *sqlx.DB, batchSize uint) Repo {
 	return &repo{db: db, batchSize: batchSize}
 }
 
-func (r *repo) DescribeTemplate(ctx context.Context, templateID uint64) (*model.Template, error) {
-	return nil, nil
+func (r *repo) CreatePackage(ctx context.Context, pack *model.Package) (uint64, error) {
+	return 0, errors.New("not implemented")
+}
+
+func (r *repo) DescribePackage(ctx context.Context, packageID uint64) (*model.Package, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *repo) ListPackages(ctx context.Context, offset uint64) ([]*model.Package, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (r *repo) RemovePackage(ctx context.Context, packageID uint64) error {
+	return errors.New("not implemented")
 }

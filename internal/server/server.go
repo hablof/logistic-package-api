@@ -109,7 +109,7 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 
 	r := repo.NewRepo(s.db, s.batchSize)
 
-	pb.RegisterLogisticPackageApiServiceServer(grpcServer, api.NewTemplateAPI(r))
+	pb.RegisterLogisticPackageApiServiceServer(grpcServer, api.NewLogisticPackageAPI(r))
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(grpcServer)
 

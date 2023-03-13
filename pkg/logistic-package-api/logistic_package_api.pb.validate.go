@@ -40,9 +40,15 @@ func (m *Package) Validate() error {
 		return nil
 	}
 
-	// no validation rules for Id
+	// no validation rules for ID
 
-	// no validation rules for Foo
+	// no validation rules for Title
+
+	// no validation rules for Material
+
+	// no validation rules for MaximumVolume
+
+	// no validation rules for Reusable
 
 	if v, ok := interface{}(m.GetCreated()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
@@ -111,6 +117,165 @@ var _ interface {
 	ErrorName() string
 } = PackageValidationError{}
 
+// Validate checks the field values on CreatePackageV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CreatePackageV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if utf8.RuneCountInString(m.GetTitle()) > 32 {
+		return CreatePackageV1RequestValidationError{
+			field:  "Title",
+			reason: "value length must be at most 32 runes",
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetMaterial()) > 32 {
+		return CreatePackageV1RequestValidationError{
+			field:  "Material",
+			reason: "value length must be at most 32 runes",
+		}
+	}
+
+	if m.GetMaximumVolume() < 0 {
+		return CreatePackageV1RequestValidationError{
+			field:  "MaximumVolume",
+			reason: "value must be greater than or equal to 0",
+		}
+	}
+
+	// no validation rules for Reusable
+
+	return nil
+}
+
+// CreatePackageV1RequestValidationError is the validation error returned by
+// CreatePackageV1Request.Validate if the designated constraints aren't met.
+type CreatePackageV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreatePackageV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreatePackageV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreatePackageV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreatePackageV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreatePackageV1RequestValidationError) ErrorName() string {
+	return "CreatePackageV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreatePackageV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreatePackageV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreatePackageV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreatePackageV1RequestValidationError{}
+
+// Validate checks the field values on CreatePackageV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *CreatePackageV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for ID
+
+	return nil
+}
+
+// CreatePackageV1ResponseValidationError is the validation error returned by
+// CreatePackageV1Response.Validate if the designated constraints aren't met.
+type CreatePackageV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreatePackageV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreatePackageV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreatePackageV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreatePackageV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreatePackageV1ResponseValidationError) ErrorName() string {
+	return "CreatePackageV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreatePackageV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreatePackageV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreatePackageV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreatePackageV1ResponseValidationError{}
+
 // Validate checks the field values on DescribePackageV1Request with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -119,9 +284,9 @@ func (m *DescribePackageV1Request) Validate() error {
 		return nil
 	}
 
-	if m.GetPackageId() <= 0 {
+	if m.GetPackageID() <= 0 {
 		return DescribePackageV1RequestValidationError{
-			field:  "PackageId",
+			field:  "PackageID",
 			reason: "value must be greater than 0",
 		}
 	}
@@ -261,3 +426,287 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DescribePackageV1ResponseValidationError{}
+
+// Validate checks the field values on ListPackagesV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ListPackagesV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetOffset() < 0 {
+		return ListPackagesV1RequestValidationError{
+			field:  "Offset",
+			reason: "value must be greater than or equal to 0",
+		}
+	}
+
+	return nil
+}
+
+// ListPackagesV1RequestValidationError is the validation error returned by
+// ListPackagesV1Request.Validate if the designated constraints aren't met.
+type ListPackagesV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListPackagesV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListPackagesV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListPackagesV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListPackagesV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListPackagesV1RequestValidationError) ErrorName() string {
+	return "ListPackagesV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListPackagesV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListPackagesV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListPackagesV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListPackagesV1RequestValidationError{}
+
+// Validate checks the field values on ListPackagesV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *ListPackagesV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	return nil
+}
+
+// ListPackagesV1ResponseValidationError is the validation error returned by
+// ListPackagesV1Response.Validate if the designated constraints aren't met.
+type ListPackagesV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListPackagesV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListPackagesV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListPackagesV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListPackagesV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListPackagesV1ResponseValidationError) ErrorName() string {
+	return "ListPackagesV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListPackagesV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListPackagesV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListPackagesV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListPackagesV1ResponseValidationError{}
+
+// Validate checks the field values on RemovePackageV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *RemovePackageV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetPackageID() <= 0 {
+		return RemovePackageV1RequestValidationError{
+			field:  "PackageID",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	return nil
+}
+
+// RemovePackageV1RequestValidationError is the validation error returned by
+// RemovePackageV1Request.Validate if the designated constraints aren't met.
+type RemovePackageV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RemovePackageV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RemovePackageV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RemovePackageV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RemovePackageV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RemovePackageV1RequestValidationError) ErrorName() string {
+	return "RemovePackageV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RemovePackageV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRemovePackageV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RemovePackageV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RemovePackageV1RequestValidationError{}
+
+// Validate checks the field values on RemovePackageV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *RemovePackageV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Suc
+
+	return nil
+}
+
+// RemovePackageV1ResponseValidationError is the validation error returned by
+// RemovePackageV1Response.Validate if the designated constraints aren't met.
+type RemovePackageV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RemovePackageV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RemovePackageV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RemovePackageV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RemovePackageV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RemovePackageV1ResponseValidationError) ErrorName() string {
+	return "RemovePackageV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RemovePackageV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRemovePackageV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RemovePackageV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RemovePackageV1ResponseValidationError{}

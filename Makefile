@@ -94,6 +94,6 @@ build-go: generate-go .build
 		" \
 		-o ./bin/grpc-server$(shell go env GOEXE) ./cmd/grpc-server/main.go
 
-.PHONY: run
-run:
-	go run ./cmd/logistic-package-api/main.go
+# .PHONY: run
+# run:
+# 	go run ./cmd/logistic-package-api/main.go
