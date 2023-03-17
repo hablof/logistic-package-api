@@ -9,21 +9,13 @@ import (
 	"github.com/hablof/logistic-package-api/internal/model"
 )
 
-// Repo is DAO for Package
-type Repo interface {
-	CreatePackage(ctx context.Context, pack *model.Package) (uint64, error)
-	DescribePackage(ctx context.Context, packageID uint64) (*model.Package, error)
-	ListPackages(ctx context.Context, offset uint64) ([]*model.Package, error)
-	RemovePackage(ctx context.Context, packageID uint64) error
-}
-
 type repo struct {
 	db        *sqlx.DB
 	batchSize uint
 }
 
 // NewRepo returns Repo interface
-func NewRepo(db *sqlx.DB, batchSize uint) Repo {
+func NewRepo(db *sqlx.DB, batchSize uint) *repo {
 	return &repo{db: db, batchSize: batchSize}
 }
 

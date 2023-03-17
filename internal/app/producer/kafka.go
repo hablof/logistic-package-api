@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
-	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
 )
@@ -34,7 +33,6 @@ type producer struct {
 type ProducerConfig struct {
 	// maximumKeepOrderAttempts model.TimesDefered
 	ProducerCount  uint64
-	Repo           repo.EventRepo
 	Sender         sender.EventSender
 	CleanerChannel chan<- cleaner.PackageCleanerEvent
 	EventsChannel  chan model.PackageEvent

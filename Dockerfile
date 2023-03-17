@@ -2,13 +2,13 @@
 
 ARG GITHUB_PATH=github.com/hablof/logistic-package-api
 
-FROM golang:1.16-alpine AS builder
+FROM golang:1.19-alpine AS builder
 
 WORKDIR /home/${GITHUB_PATH}
 
 RUN apk add --update make git protoc protobuf protobuf-dev curl
-COPY Makefile Makefile
-RUN make deps-go
+# COPY Makefile Makefile
+# RUN make deps-go
 COPY . .
 RUN make build-go
 

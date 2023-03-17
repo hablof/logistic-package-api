@@ -32,7 +32,7 @@ func (o *orderManager) ApproveOrder(incomingEvent model.PackageEvent) bool {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
-	prevEventType, ok := o.ordermap[incomingEvent.Entity.ID]
+	prevEventType, ok := o.ordermap[incomingEvent.PackageID]
 
 	switch incomingEvent.Type {
 	case model.Created:
@@ -53,23 +53,23 @@ func (o *orderManager) RegisterEvent(incomingEvent model.PackageEvent) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
-	prevEventType, ok := o.ordermap[incomingEvent.Entity.ID]
+	prevEventType, ok := o.ordermap[incomingEvent.PackageID]
 
 	switch incomingEvent.Type {
 	case model.Created:
-		o.ordermap[incomingEvent.Entity.ID] = model.Created
+		o.ordermap[incomingEvent.PackageID] = model.Created
 		if !ok {
 			return nil
 		}
 
 	case model.Updated:
-		o.ordermap[incomingEvent.Entity.ID] = model.Updated
+		o.ordermap[incomingEvent.PackageID] = model.Updated
 		if ok && (prevEventType == model.Created || prevEventType == model.Updated) {
 			return nil
 		}
 
 	case model.Removed:
-		delete(o.ordermap, incomingEvent.Entity.ID)
+		delete(o.ordermap, incomingEvent.PackageID)
 		if ok && (prevEventType == model.Created || prevEventType == model.Updated) {
 			return nil
 		}

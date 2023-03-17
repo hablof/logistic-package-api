@@ -7,7 +7,6 @@ import (
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
 	"github.com/hablof/logistic-package-api/internal/app/consumer"
 	"github.com/hablof/logistic-package-api/internal/app/producer"
-	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
 )
@@ -27,8 +26,9 @@ type RetranslatorConfig struct {
 	ProducerCount uint64
 	WorkerCount   int
 
-	Repo   repo.EventRepo
-	Sender sender.EventSender
+	CleanerRepo  cleaner.RepoEventCleaner
+	ConsumerRepo consumer.RepoEventConsumer
+	Sender       sender.EventSender
 }
 
 type retranslator struct {
@@ -45,14 +45,13 @@ func NewRetranslator(cfg RetranslatorConfig) Retranslator {
 	consumerCfg := consumer.ConsumerConfig{
 		ConsumeCount:    cfg.ConsumerCount,
 		EventsChannel:   eventsChannel,
-		Repo:            cfg.Repo,
+		Repo:            cfg.ConsumerRepo,
 		BatchSize:       cfg.BatchSize,
 		ConsumeInterval: cfg.ConsumeInterval,
 	}
 
 	producerCfg := producer.ProducerConfig{
 		ProducerCount:  cfg.ProducerCount,
-		Repo:           cfg.Repo,
 		Sender:         cfg.Sender,
 		EventsChannel:  eventsChannel,
 		CleanerChannel: cleanerChannel,
@@ -61,7 +60,7 @@ func NewRetranslator(cfg RetranslatorConfig) Retranslator {
 	cleanerCfg := cleaner.CleanerConfig{
 		WorkerCount:      cfg.WorkerCount,
 		CleanerBatchSize: cfg.BatchSize / 2,
-		Repo:             cfg.Repo,
+		Repo:             cfg.CleanerRepo,
 		CleanerChannel:   cleanerChannel,
 		CleanupInterval:  cfg.ConsumeInterval,
 	}

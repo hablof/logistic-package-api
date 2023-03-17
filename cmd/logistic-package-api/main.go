@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/retranslator"
-	"github.com/hablof/logistic-package-api/internal/mocks"
 )
 
 func main() {
@@ -22,8 +21,8 @@ func main() {
 		ConsumeInterval: 2 * time.Second,
 		ProducerCount:   28,
 		WorkerCount:     2,
-		Repo:            &mocks.MockEventRepo{},
-		Sender:          &mocks.MockEventSender{},
+		// Repo:            &mocks.MockEventRepo{},
+		// Sender:          &mocks.MockEventSender{},
 	}
 
 	retranslator := retranslator.NewRetranslator(cfg)

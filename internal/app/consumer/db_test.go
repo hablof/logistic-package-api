@@ -44,10 +44,9 @@ func TestConsumer(t *testing.T) {
 							ID:      entityID,
 							Type:    model.Created,
 							Status:  model.Processed,
+							Created: time.Time{},
+							Payload: []byte{},
 							Defered: 0,
-							Entity: &model.Package{
-								ID: entityID,
-							},
 						}
 						entityID++
 						output = append(output, e)

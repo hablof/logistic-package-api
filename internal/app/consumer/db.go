@@ -6,9 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/model"
 )
+
+type RepoEventConsumer interface {
+	Lock(n uint64) ([]model.PackageEvent, error)
+}
 
 type Consumer interface {
 	Start()
@@ -19,7 +22,7 @@ type consumer struct {
 	consumerCount uint64
 	eventsChannel chan<- model.PackageEvent
 
-	repo repo.EventRepo
+	repo RepoEventConsumer
 
 	batchSize       uint64
 	consumeInterval time.Duration
@@ -31,7 +34,7 @@ type consumer struct {
 type ConsumerConfig struct {
 	ConsumeCount    uint64
 	EventsChannel   chan<- model.PackageEvent
-	Repo            repo.EventRepo
+	Repo            RepoEventConsumer
 	BatchSize       uint64
 	ConsumeInterval time.Duration
 }

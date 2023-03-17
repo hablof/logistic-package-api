@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "driver": "PostgreSQL",
+            "name": "vsc",
+            "connectString": "postgresql://postgres:postgres@0.0.0.0:5432/logistic_package_api"
+        }
+    ]
+}

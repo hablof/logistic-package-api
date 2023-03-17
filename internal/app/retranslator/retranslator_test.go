@@ -97,17 +97,13 @@ func generate(count int) []model.PackageEvent {
 	result := make([]model.PackageEvent, 0, count)
 	for i := 0; i < count; i++ {
 		event := model.PackageEvent{
-			ID:      uint64(i),
-			Type:    model.Created,
-			Status:  0,
-			Defered: 0,
-			Entity: &model.Package{
-				ID:            uint64(i),
-				Title:         "",
-				Material:      "",
-				MaximumVolume: 0,
-				Reusable:      false,
-			},
+			ID:        uint64(i),
+			PackageID: uint64(i),
+			Type:      model.Created,
+			Status:    0,
+			Created:   time.Time{},
+			Payload:   []byte{},
+			Defered:   0,
 		}
 		result = append(result, event)
 	}
@@ -127,7 +123,8 @@ func setup(t *testing.T, batchSize uint64) (*mocks.MockEventRepo, *mocks.MockEve
 		ConsumeInterval: 100 * time.Millisecond,
 		ProducerCount:   8,
 		WorkerCount:     4,
-		Repo:            repo,
+		CleanerRepo:     repo,
+		ConsumerRepo:    repo,
 		Sender:          sender,
 	}
 

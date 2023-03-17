@@ -1,8 +1,10 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -26,14 +28,50 @@ func GetConfigInstance() Config {
 
 // Database - contains all parameters database connection.
 type Database struct {
-	Host       string `yaml:"host"`
-	Port       string `yaml:"port"`
-	User       string `yaml:"user"`
-	Password   string `yaml:"password"`
-	Migrations string `yaml:"migrations"`
-	Name       string `yaml:"name"`
-	SslMode    string `yaml:"sslmode"`
-	Driver     string `yaml:"driver"`
+	Host       string  `yaml:"host"`
+	Port       string  `yaml:"port"`
+	User       string  `yaml:"user"`
+	Password   string  `yaml:"password"`
+	Migrations string  `yaml:"migrations"`
+	Name       string  `yaml:"name"`
+	SslMode    string  `yaml:"sslmode"`
+	Driver     string  `yaml:"driver"`
+	DBConns    DBConns `yaml:"connection"`
+}
+
+type DBConns struct {
+	DSN             string        `yaml:"dsn"`
+	MaxOpenConns    int           `yaml:"maxOpenConns"`
+	MaxIdleConns    int           `yaml:"maxIdleConns"`
+	ConnMaxIdleTime time.Duration `yaml:"connMaxIdleTime"`
+	ConnMaxLifetime time.Duration `yaml:"connMaxLifetime"`
+}
+
+func (d Database) GetDSN() string {
+	return fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=%v",
+		d.Host,
+		d.Port,
+		d.User,
+		d.Password,
+		d.Name,
+		d.SslMode,
+	)
+}
+
+func (d Database) GetMaxOpenConns() int {
+	return d.DBConns.MaxOpenConns
+}
+
+func (d Database) GetMaxIdleConns() int {
+	return d.DBConns.MaxIdleConns
+}
+
+func (d Database) GetConnMaxIdleTime() time.Duration {
+	return d.DBConns.ConnMaxIdleTime
+}
+
+func (d Database) GetConnMaxLifetime() time.Duration {
+	return d.DBConns.ConnMaxLifetime
 }
 
 // Grpc - contains parameter address grpc.

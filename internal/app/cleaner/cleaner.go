@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gammazero/workerpool"
-	"github.com/hablof/logistic-package-api/internal/app/repo"
 )
 
 type SenderStatus uint8
@@ -22,6 +21,11 @@ type PackageCleanerEvent struct {
 	EventID uint64
 }
 
+type RepoEventCleaner interface {
+	Unlock(eventIDs []uint64) error
+	Remove(eventIDs []uint64) error
+}
+
 type Cleaner interface {
 	Start()
 	Close()
@@ -30,7 +34,7 @@ type Cleaner interface {
 type cleaner struct {
 	cleanerCount          int
 	cleanerChannel        <-chan PackageCleanerEvent
-	repo                  repo.EventRepo
+	repo                  RepoEventCleaner
 	batchSize             uint64
 	forcedCleanupInterval time.Duration
 	workerPool            *workerpool.WorkerPool
@@ -44,7 +48,7 @@ type cleaner struct {
 type CleanerConfig struct {
 	WorkerCount      int
 	CleanerBatchSize uint64
-	Repo             repo.EventRepo
+	Repo             RepoEventCleaner
 	CleanerChannel   <-chan PackageCleanerEvent
 	CleanupInterval  time.Duration
 }

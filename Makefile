@@ -14,7 +14,7 @@ SERVICE_PATH=hablof/logistic-package-api
 # OS_NAME=$(shell uname -s)
 # OS_ARCH=$(shell uname -m)
 # GO_BIN=$(shell go env GOPATH)/bin
-# BUF_EXE=$(GO_BIN)/buf$(shell go env GOEXE)
+BUF_EXE=$(GO_BIN)/buf$(shell go env GOEXE)
 
 # ifeq ("NT", "$(findstring NT,$(OS_NAME))")
 # OS_NAME=Windows
@@ -73,20 +73,22 @@ deps-go:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1.0
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.5.0
 	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.5.0
-	go install github.com/envoyproxy/protoc-gen-validate@$(PGV_VERSION)
+	go install github.com/envoyproxy/protoc-gen-validate@v0.9.1
 	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@latest
 
 .deps-python:
 	python -m pip install grpcio-tools grpclib protobuf
 
 .PHONY: build
-build: generate .build
+build: .build
+# build: generate .build
 
 .PHONY: build-go
-build-go: generate-go .build
+build-go: .build
+# build-go: generate-go .build
 
 .build:
-	go mod download && CGO_ENABLED=0  go build \
+	go build \
 		-tags='no_mysql no_sqlite3' \
 		-ldflags=" \
 			-X 'github.com/$(SERVICE_PATH)/internal/config.version=$(VERSION)' \

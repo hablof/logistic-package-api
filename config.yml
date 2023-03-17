@@ -40,6 +40,11 @@ database:
   sslmode: disable
   migrations: migrations
   driver: pgx
+  connection:
+    maxOpenConns: 5
+    maxIdleConns: 5
+    connMaxIdleTime: 300s
+    connMaxLifetime: 300s
 
 kafka:
   capacity: 512
