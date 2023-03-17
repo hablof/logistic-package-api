@@ -25,8 +25,8 @@ import (
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 
 	"github.com/hablof/logistic-package-api/internal/api"
+	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/config"
-	"github.com/hablof/logistic-package-api/internal/repo"
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 )
 
@@ -107,7 +107,7 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 		)),
 	)
 
-	r := repo.NewRepo(s.db, s.batchSize)
+	r := repo.NewRepository(s.db, s.batchSize)
 
 	pb.RegisterLogisticPackageApiServiceServer(grpcServer, api.NewLogisticPackageAPI(r))
 	grpc_prometheus.EnableHandlingTimeHistogram()

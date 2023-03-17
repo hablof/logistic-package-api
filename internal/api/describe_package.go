@@ -20,14 +20,14 @@ func (o *logisticPackageAPI) DescribePackageV1(ctx context.Context, req *pb.Desc
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	mypackage, err := o.repo.DescribePackage(ctx, req.GetPackageID())
+	unit, err := o.repo.DescribePackage(ctx, req.GetPackageID())
 	if err != nil {
 		log.Error().Err(err).Msg("DescribePackageV1 -- failed")
 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	if mypackage == nil {
+	if unit == nil {
 		log.Debug().Uint64("packageID", req.PackageID).Msg("package not found")
 		totalTemplateNotFound.Inc()
 
@@ -38,15 +38,12 @@ func (o *logisticPackageAPI) DescribePackageV1(ctx context.Context, req *pb.Desc
 
 	return &pb.DescribePackageV1Response{
 		Value: &pb.Package{
-			ID:            mypackage.ID,
-			Title:         mypackage.Title,
-			Material:      mypackage.Material,
-			MaximumVolume: mypackage.MaximumVolume,
-			Reusable:      mypackage.Reusable,
-			Created: &timestamppb.Timestamp{
-				Seconds: 0,
-				Nanos:   0,
-			},
+			ID:            unit.ID,
+			Title:         unit.Title,
+			Material:      unit.Material,
+			MaximumVolume: unit.MaximumVolume,
+			Reusable:      unit.Reusable,
+			Created:       timestamppb.New(unit.Created),
 		},
 	}, nil
 }
