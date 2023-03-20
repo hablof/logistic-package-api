@@ -20,7 +20,7 @@ var (
 type RepoCRUD interface {
 	CreatePackage(ctx context.Context, pack *model.Package) (uint64, error)
 	DescribePackage(ctx context.Context, packageID uint64) (*model.Package, error)
-	ListPackages(ctx context.Context, offset uint64) ([]*model.Package, error)
+	ListPackages(ctx context.Context, offset uint64) ([]model.Package, error)
 	RemovePackage(ctx context.Context, packageID uint64) error
 }
 

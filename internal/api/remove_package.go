@@ -19,7 +19,7 @@ func (o *logisticPackageAPI) RemovePackageV1(ctx context.Context, req *pb.Remove
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	err := o.repo.RemovePackage(ctx, req.GetPackageID())
+	err := o.repo.RemovePackage(ctx, req.GetPackageID()) // err used in this scope
 	if err != nil {
 		log.Error().Err(err).Msg("RemovePackageV1 -- failed")
 

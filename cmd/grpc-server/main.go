@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	batchSize uint = 2
+	batchSize uint64 = 2
 )
 
 func main() {
@@ -46,6 +46,7 @@ func main() {
 	db, err := database.NewPostgres(cfg.Database, cfg.Database.Driver)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed init postgres")
+		return
 	}
 	defer db.Close()
 

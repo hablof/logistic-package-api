@@ -17,10 +17,6 @@ const (
 // CreatePackage implements api.RepoCRUD
 func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (uint64, error) {
 	returningID := uint64(0)
-	jsonbytes, err := json.Marshal(*pack)
-	if err != nil {
-		return 0, err
-	}
 
 	crudQuery, crudArgs, err := r.initQuery.Insert("package").
 		Columns("title", "material", "max_volume", "reusable", "created_at").
@@ -41,7 +37,22 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (ui
 		return 0, err
 	}
 
-	eventQuery, eventArgs, err := r.initQuery.Insert("package_event").Columns("package_id", "event_type", "payload").
+	unit := model.Package{
+		ID:            returningID,
+		Title:         pack.Title,
+		Material:      pack.Material,
+		MaximumVolume: pack.MaximumVolume,
+		Reusable:      pack.Reusable,
+		Created:       pack.Created,
+	}
+
+	jsonbytes, err := json.Marshal(unit)
+	if err != nil {
+		return 0, err
+	}
+
+	eventQuery, eventArgs, err := r.initQuery.Insert("package_event").
+		Columns("package_id", "event_type", "payload").
 		Values(returningID, "Created", jsonbytes).ToSql()
 	if err != nil {
 		return 0, err
@@ -79,12 +90,60 @@ func (r *repository) DescribePackage(ctx context.Context, packageID uint64) (*mo
 }
 
 // ListPackages implements api.RepoCRUD
-func (r *repository) ListPackages(ctx context.Context, offset uint64) ([]*model.Package, error) {
-	// КУРСОР !!!
-	panic("unimplemented")
+func (r *repository) ListPackages(ctx context.Context, offset uint64) ([]model.Package, error) {
+	query, args, err := r.initQuery.Select("package_id", "title", "material", "max_volume", "reusable", "created_at").
+		From("package").Limit(DefaultLimit).Offset(offset).ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := r.db.QueryxContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	output := make([]model.Package, 0, DefaultLimit)
+
+	for rows.Next() {
+		unit := model.Package{}
+		if err := rows.StructScan(&unit); err != nil {
+			return nil, err
+		}
+		output = append(output, unit)
+	}
+
+	return output, nil
 }
 
 // RemovePackage implements api.RepoCRUD
 func (r *repository) RemovePackage(ctx context.Context, packageID uint64) error {
-	panic("unimplemented")
+	crudQuery, crudArgs, err := r.initQuery.Delete("package").
+		Where(sq.Eq{"package_id": packageID}).ToSql()
+	if err != nil {
+		return err
+	}
+
+	eventQuery, eventArgs, err := r.initQuery.Insert("package_event").
+		Columns("package_id", "event_type").Values(packageID, "Removed").ToSql()
+	if err != nil {
+		return err
+	}
+
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx, crudQuery, crudArgs...); err != nil {
+		return err
+	}
+
+	if _, err := tx.ExecContext(ctx, eventQuery, eventArgs...); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }

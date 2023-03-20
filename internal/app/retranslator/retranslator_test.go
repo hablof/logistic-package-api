@@ -103,7 +103,6 @@ func generate(count int) []model.PackageEvent {
 			Status:    0,
 			Created:   time.Time{},
 			Payload:   []byte{},
-			Defered:   0,
 		}
 		result = append(result, event)
 	}

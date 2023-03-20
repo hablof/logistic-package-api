@@ -53,3 +53,12 @@ kafka:
   brokers:
     - "kafka:9092"
     - "localhost:9094"
+
+retranslator:
+  enabled: true
+  channelSize: 512
+  consumerCount: 1
+  batchSize: 3
+  consumeInterval: 10s
+  producerCount: 8
+  workerCount: 2

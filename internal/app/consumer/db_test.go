@@ -43,10 +43,9 @@ func TestConsumer(t *testing.T) {
 						e := model.PackageEvent{
 							ID:      entityID,
 							Type:    model.Created,
-							Status:  model.Processed,
+							Status:  model.Locked,
 							Created: time.Time{},
 							Payload: []byte{},
-							Defered: 0,
 						}
 						entityID++
 						output = append(output, e)

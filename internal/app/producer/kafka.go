@@ -2,13 +2,13 @@ package producer
 
 import (
 	"context"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
+	"github.com/rs/zerolog/log"
 )
 
 type Producer interface {
@@ -83,7 +83,7 @@ func (p *producer) runHandler(ctx context.Context) {
 				}
 
 			default:
-				log.Println(event, err)
+				log.Debug().Err(err).Msgf("eventID: %d", event.ID)
 				p.cleanerChannel <- cleaner.PackageCleanerEvent{
 					Status:  cleaner.Fail,
 					EventID: event.ID,

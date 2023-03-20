@@ -6,7 +6,7 @@ type EventType uint8
 
 type EventStatus uint8
 
-type TimesDefered uint8
+// type TimesDefered uint8
 
 const (
 	_ EventType = iota
@@ -17,8 +17,8 @@ const (
 
 const (
 	_ EventStatus = iota
-	Deferred
-	Processed
+	Locked
+	Unlocked
 )
 
 type Package struct {
@@ -31,11 +31,11 @@ type Package struct {
 }
 
 type PackageEvent struct {
-	ID        uint64       `db:"package_event_id"`
-	PackageID uint64       `db:"package_id"`
-	Type      EventType    `db:"event_type"`
-	Status    EventStatus  `db:"event_status"`
-	Created   time.Time    `db:"created_at"`
-	Payload   []byte       `db:"payload"`
-	Defered   TimesDefered // retranslator param
+	ID        uint64      // `db:"package_event_id"`
+	PackageID uint64      // `db:"package_id"`
+	Type      EventType   // `db:"event_type"`
+	Status    EventStatus // `db:"event_status"`
+	Created   time.Time   // `db:"created_at"`
+	Payload   []byte      // `db:"payload"`
+	// Defered   TimesDefered // retranslator param for keeping correct order sending to kafka
 }

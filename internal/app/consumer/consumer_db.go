@@ -2,15 +2,15 @@ package consumer
 
 import (
 	"context"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/hablof/logistic-package-api/internal/model"
+	"github.com/rs/zerolog/log"
 )
 
 type RepoEventConsumer interface {
-	Lock(n uint64) ([]model.PackageEvent, error)
+	Lock(limit uint64) ([]model.PackageEvent, error)
 }
 
 type Consumer interface {
@@ -76,6 +76,7 @@ func (c *consumer) runHandler(ctx context.Context) {
 		case <-ticker.C:
 			events, err := c.repo.Lock(c.batchSize)
 			if err != nil {
+				log.Debug().Err(err).Msg("consumer failed to Lock")
 				continue
 			}
 			for _, event := range events {

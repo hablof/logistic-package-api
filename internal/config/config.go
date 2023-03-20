@@ -129,16 +129,27 @@ type Status struct {
 	ReadinessPath string `yaml:"readinessPath"`
 }
 
+type Retranslator struct {
+	Enabled         bool          `yaml:"enabled"`
+	ChannelSize     int           `yaml:"channelSize"`
+	ConsumerCount   int           `yaml:"consumerCount"`
+	BatchSize       int           `yaml:"batchSize"`
+	ConsumeInterval time.Duration `yaml:"consumeInterval"`
+	ProducerCount   int           `yaml:"producerCount"`
+	WorkerCount     int           `yaml:"workerCount"`
+}
+
 // Config - contains all configuration parameters in config package.
 type Config struct {
-	Project  Project  `yaml:"project"`
-	Grpc     Grpc     `yaml:"grpc"`
-	Rest     Rest     `yaml:"rest"`
-	Database Database `yaml:"database"`
-	Metrics  Metrics  `yaml:"metrics"`
-	Jaeger   Jaeger   `yaml:"jaeger"`
-	Kafka    Kafka    `yaml:"kafka"`
-	Status   Status   `yaml:"status"`
+	Project      Project      `yaml:"project"`
+	Grpc         Grpc         `yaml:"grpc"`
+	Rest         Rest         `yaml:"rest"`
+	Database     Database     `yaml:"database"`
+	Metrics      Metrics      `yaml:"metrics"`
+	Jaeger       Jaeger       `yaml:"jaeger"`
+	Kafka        Kafka        `yaml:"kafka"`
+	Status       Status       `yaml:"status"`
+	Retranslator Retranslator `yaml:"retranslator"`
 }
 
 // ReadConfigYML - read configurations from file and init instance Config.

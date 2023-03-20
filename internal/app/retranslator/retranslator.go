@@ -1,7 +1,6 @@
 package retranslator
 
 import (
-	"log"
 	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
@@ -9,6 +8,7 @@ import (
 	"github.com/hablof/logistic-package-api/internal/app/producer"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
+	"github.com/rs/zerolog/log"
 )
 
 type Retranslator interface {
@@ -81,11 +81,11 @@ func (r *retranslator) Start() {
 	r.producer.Start()
 	r.consumer.Start()
 	r.cleaner.Start()
-	log.Println("retranslator started")
+	log.Debug().Msg("retranslator started")
 }
 
 func (r *retranslator) Close() {
-	// closing order matters to
+	// closing sequence matters to
 	// implement At-least-once guarantee
 	// consumer -> producer -> cleaner
 	r.consumer.Close()
