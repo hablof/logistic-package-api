@@ -74,7 +74,9 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (ui
 // DescribePackage implements api.RepoCRUD
 func (r *repository) DescribePackage(ctx context.Context, packageID uint64) (*model.Package, error) {
 	query, args, err := r.initQuery.Select("package_id", "title", "material", "max_volume", "reusable", "created_at").
-		From("package").Where(sq.Eq{"package_id": packageID}).ToSql()
+		From("package").
+		Where(sq.Eq{"package_id": packageID}).
+		ToSql()
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +94,10 @@ func (r *repository) DescribePackage(ctx context.Context, packageID uint64) (*mo
 // ListPackages implements api.RepoCRUD
 func (r *repository) ListPackages(ctx context.Context, offset uint64) ([]model.Package, error) {
 	query, args, err := r.initQuery.Select("package_id", "title", "material", "max_volume", "reusable", "created_at").
-		From("package").Limit(DefaultLimit).Offset(offset).ToSql()
+		From("package").
+		Limit(DefaultLimit).
+		Offset(offset).
+		ToSql()
 	if err != nil {
 		return nil, err
 	}
@@ -120,13 +125,16 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64) ([]model.P
 // RemovePackage implements api.RepoCRUD
 func (r *repository) RemovePackage(ctx context.Context, packageID uint64) error {
 	crudQuery, crudArgs, err := r.initQuery.Delete("package").
-		Where(sq.Eq{"package_id": packageID}).ToSql()
+		Where(sq.Eq{"package_id": packageID}).
+		ToSql()
 	if err != nil {
 		return err
 	}
 
 	eventQuery, eventArgs, err := r.initQuery.Insert("package_event").
-		Columns("package_id", "event_type").Values(packageID, "Removed").ToSql()
+		Columns("package_id", "event_type").
+		Values(packageID, "Removed").
+		ToSql()
 	if err != nil {
 		return err
 	}
