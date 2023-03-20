@@ -24,7 +24,7 @@ const (
 )
 
 // Lock implements consumer.RepoEventConsumer
-func (r *repository) Lock(limit uint64) ([]model.PackageEvent, error) {
+func (r *repository) Lock(limit uint64) ([]model.PackageEvent, error) { // use r.batchsize instead argument limit ?
 
 	log.Debug().Msgf("repository.Lock was called %d entries", limit)
 
