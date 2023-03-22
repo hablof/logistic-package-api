@@ -1,7 +1,7 @@
 package tracer
 
 import (
-	"errors"
+	"fmt"
 	"io"
 
 	"github.com/opentracing/opentracing-go"
@@ -18,15 +18,17 @@ type loggerJaeger struct {
 
 // Error implements jaeger.Logger
 func (loggerJaeger) Error(msg string) {
-	log.Debug().Err(errors.New(msg))
+	log.Error().Err(fmt.Errorf("JAEGER ERROR: %s", msg))
 }
 
 // Infof implements jaeger.Logger
 func (loggerJaeger) Infof(msg string, args ...interface{}) {
-	log.Debug().Msgf(msg, args...)
+	log.Info().Msgf(fmt.Sprintf("JAEGER INFO: %s", msg), args...)
 }
 
-var _ jaeger.Logger = loggerJaeger{}
+func (loggerJaeger) Debugf(msg string, args ...interface{}) {
+	log.Debug().Msgf(fmt.Sprintf("JAEGER DEBUG: %s", msg), args...)
+}
 
 // NewTracer - returns new tracer.
 func NewTracer(cfg *config.Config) (io.Closer, error) {
