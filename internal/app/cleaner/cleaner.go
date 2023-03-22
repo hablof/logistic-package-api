@@ -2,11 +2,11 @@ package cleaner
 
 import (
 	"context"
-	"log"
 	"sync"
 	"time"
 
 	"github.com/gammazero/workerpool"
+	"github.com/rs/zerolog/log"
 )
 
 type SenderStatus uint8
@@ -128,7 +128,7 @@ func (c *cleaner) submitToUnlock(unlockQueue []uint64) {
 	copy(sending, unlockQueue)
 	c.workerPool.Submit(func() {
 		if err := c.repo.Unlock(sending); err != nil {
-			log.Println(err)
+			log.Debug().Err(err).Msg("cleaner.submitToUnlock failed")
 		}
 	})
 }
@@ -138,7 +138,7 @@ func (c *cleaner) submitToRemove(removeQueue []uint64) {
 	copy(sending, removeQueue)
 	c.workerPool.Submit(func() {
 		if err := c.repo.Remove(sending); err != nil {
-			log.Println(err)
+			log.Debug().Err(err).Msg("cleaner.submitToRemove failed")
 		}
 	})
 }
@@ -154,7 +154,7 @@ func (c *cleaner) Start() {
 		}()
 	}
 
-	log.Printf("cleaner started with %d workers", c.cleanerCount)
+	log.Info().Msgf("cleaner started with %d workers", c.cleanerCount)
 }
 
 func (c *cleaner) Close() {

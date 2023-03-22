@@ -65,7 +65,7 @@ func (c *consumer) Start() {
 		}()
 	}
 
-	log.Printf("consumer started with %d workers", c.consumerCount)
+	log.Info().Msgf("consumer started with %d workers", c.consumerCount)
 }
 
 func (c *consumer) runHandler(ctx context.Context) {

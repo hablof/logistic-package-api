@@ -58,7 +58,7 @@ retranslator:
   enabled: true
   channelSize: 512
   consumerCount: 1
-  batchSize: 3
-  consumeInterval: 10s
+  batchSize: 10
+  consumeInterval: 30s
   producerCount: 8
   workerCount: 2

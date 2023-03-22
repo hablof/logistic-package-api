@@ -68,13 +68,13 @@ func (p *producer) runHandler(ctx context.Context) {
 			// 		continue // !!!
 			// 	}
 
-			// 	log.Printf("failed to keep right order with event %v", event)
+			// 	log.("failed to keep right order with event %v", event)
 			// }
 
 			switch err := p.sender.Send(&event); err {
 			case nil:
 				// if err := p.orderManager.RegisterEvent(event); err != nil {
-				// 	log.Printf("event %v registration in ordermanager error: %v", event, err)
+				// 	log.("event %v registration in ordermanager error: %v", event, err)
 				// }
 
 				p.cleanerChannel <- cleaner.PackageCleanerEvent{
@@ -108,7 +108,7 @@ func (p *producer) Start() {
 		}()
 	}
 
-	log.Printf("producer started with %d workers", p.producerCount)
+	log.Info().Msgf("producer started with %d workers", p.producerCount)
 }
 
 func (p *producer) Close() {
