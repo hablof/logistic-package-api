@@ -91,11 +91,12 @@ type Rest struct {
 
 // Project - contains all parameters project information.
 type Project struct {
-	Debug       bool   `yaml:"debug"`
-	Name        string `yaml:"name"`
-	Environment string `yaml:"environment"`
-	Version     string
-	CommitHash  string
+	Debug            bool   `yaml:"debug"`
+	AllowRiseToDebug bool   `yaml:"allowRiseToDebug"`
+	Name             string `yaml:"name"`
+	Environment      string `yaml:"environment"`
+	Version          string
+	CommitHash       string
 }
 
 // Metrics - contains all parameters metrics information.

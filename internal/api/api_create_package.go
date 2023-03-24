@@ -5,12 +5,18 @@ import (
 
 	"github.com/hablof/logistic-package-api/internal/model"
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
-	"github.com/rs/zerolog/log"
+
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (o *logisticPackageAPI) CreatePackageV1(ctx context.Context, req *pb.CreatePackageV1Request) (*pb.CreatePackageV1Response, error) {
+
+	log := o.logger
+	if o.shouldRiseDebugLevel(ctx) {
+		log = log.Level(zerolog.DebugLevel)
+	}
 
 	log.Debug().Msg("logisticPackageAPI.CreatePackageV1 called")
 
@@ -27,7 +33,7 @@ func (o *logisticPackageAPI) CreatePackageV1(ctx context.Context, req *pb.Create
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	newID, err := o.repo.CreatePackage(ctx, &unit)
+	newID, err := o.repo.CreatePackage(ctx, &unit, log)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.CreatePackage - failed")
 		return nil, status.Error(codes.Internal, err.Error())

@@ -37,11 +37,19 @@ func main() {
 		Str("environment", cfg.Project.Environment).
 		Msgf("Starting service: %s", cfg.Project.Name)
 
-	if cfg.Project.Debug {
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	} else {
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	}
+	// In addition to global logger, in project there is
+	// local logger in gRPC api,
+	// that allows rise log level via gRPC metadata.
+	//
+	// To provide correct work of local loggers,
+	// global level should be "DebugLevel"
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+
+	// if cfg.Project.Debug {
+	// zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	// } else {
+	// 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	// }
 
 	db, err := database.NewPostgres(cfg.Database, cfg.Database.Driver)
 	if err != nil {

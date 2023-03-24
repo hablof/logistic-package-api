@@ -5,13 +5,19 @@ import (
 	"errors"
 
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
-	"github.com/rs/zerolog/log"
+
+	"github.com/rs/zerolog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func (o *logisticPackageAPI) DescribePackageV1(ctx context.Context, req *pb.DescribePackageV1Request) (*pb.DescribePackageV1Response, error) {
+
+	log := o.logger
+	if o.shouldRiseDebugLevel(ctx) {
+		log = log.Level(zerolog.DebugLevel)
+	}
 
 	log.Debug().Msg("logisticPackageAPI.DescribePackageV1 called")
 
@@ -20,7 +26,7 @@ func (o *logisticPackageAPI) DescribePackageV1(ctx context.Context, req *pb.Desc
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	unit, err := o.repo.DescribePackage(ctx, req.GetPackageID())
+	unit, err := o.repo.DescribePackage(ctx, req.GetPackageID(), log)
 	switch {
 	case errors.Is(err, ErrRepoEntityNotFound):
 		log.Debug().Uint64("packageID", req.PackageID).Msg("package not found")

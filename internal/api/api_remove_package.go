@@ -5,13 +5,19 @@ import (
 	"errors"
 
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
+	"github.com/rs/zerolog"
 
-	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (o *logisticPackageAPI) RemovePackageV1(ctx context.Context, req *pb.RemovePackageV1Request) (*pb.RemovePackageV1Response, error) {
+
+	log := o.logger
+	if o.shouldRiseDebugLevel(ctx) {
+		log = log.Level(zerolog.DebugLevel)
+	}
+
 	log.Debug().Msg("logisticPackageAPI.RemovePackageV1 called")
 
 	if err := req.Validate(); err != nil {
@@ -20,7 +26,7 @@ func (o *logisticPackageAPI) RemovePackageV1(ctx context.Context, req *pb.Remove
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	switch err := o.repo.RemovePackage(ctx, req.GetPackageID()); {
+	switch err := o.repo.RemovePackage(ctx, req.GetPackageID(), log); {
 	case errors.Is(err, ErrRepoEntityNotFound):
 		log.Debug().Uint64("packageID", req.PackageID).Msg("package not found")
 		totalTemplateNotFound.Inc()

@@ -10,7 +10,7 @@ import (
 	"github.com/hablof/logistic-package-api/internal/model"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 )
 
 // CreatePackage implements api.RepoCRUD
-func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (uint64, error) {
+func (r *repository) CreatePackage(ctx context.Context, pack *model.Package, log zerolog.Logger) (uint64, error) {
 
 	log.Debug().Msgf("repository.CreatePackage has called with package title: %s", pack.Title)
 
@@ -85,7 +85,7 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (ui
 }
 
 // DescribePackage implements api.RepoCRUD
-func (r *repository) DescribePackage(ctx context.Context, packageID uint64) (*model.Package, error) {
+func (r *repository) DescribePackage(ctx context.Context, packageID uint64, log zerolog.Logger) (*model.Package, error) {
 
 	log.Debug().Msgf("repository.DescribePackage has called with ID: %d", packageID)
 
@@ -117,7 +117,7 @@ func (r *repository) DescribePackage(ctx context.Context, packageID uint64) (*mo
 }
 
 // ListPackages implements api.RepoCRUD
-func (r *repository) ListPackages(ctx context.Context, offset uint64) ([]model.Package, error) {
+func (r *repository) ListPackages(ctx context.Context, offset uint64, log zerolog.Logger) ([]model.Package, error) {
 
 	log.Debug().Msgf("repository.ListPackages has called with offset %d", offset)
 
@@ -162,7 +162,7 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64) ([]model.P
 }
 
 // RemovePackage implements api.RepoCRUD
-func (r *repository) RemovePackage(ctx context.Context, packageID uint64) error {
+func (r *repository) RemovePackage(ctx context.Context, packageID uint64, log zerolog.Logger) error {
 
 	log.Debug().Msgf("repository.RemovePackage has called with ID: %d", packageID)
 
