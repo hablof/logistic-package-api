@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 	"github.com/rs/zerolog/log"
@@ -16,22 +17,21 @@ func (o *logisticPackageAPI) DescribePackageV1(ctx context.Context, req *pb.Desc
 
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("DescribePackageV1 - invalid argument")
-
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	unit, err := o.repo.DescribePackage(ctx, req.GetPackageID())
-	if err != nil {
-		log.Error().Err(err).Msg("DescribePackageV1 -- failed")
-
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	if unit == nil {
+	switch {
+	case errors.Is(err, ErrRepoEntityNotFound):
 		log.Debug().Uint64("packageID", req.PackageID).Msg("package not found")
 		totalTemplateNotFound.Inc()
 
 		return nil, status.Error(codes.NotFound, "package not found")
+
+	case err != nil:
+		log.Error().Err(err).Msg("DescribePackageV1 - failed")
+		return nil, status.Error(codes.Internal, err.Error())
+
 	}
 
 	log.Debug().Msg("DescribePackageV1 - success")

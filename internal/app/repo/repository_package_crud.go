@@ -2,9 +2,11 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
-	"fmt"
+	"errors"
 
+	"github.com/hablof/logistic-package-api/internal/api"
 	"github.com/hablof/logistic-package-api/internal/model"
 
 	sq "github.com/Masterminds/squirrel"
@@ -17,12 +19,15 @@ const (
 
 // CreatePackage implements api.RepoCRUD
 func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (uint64, error) {
-	returningID := uint64(0)
 
-	crudQuery, crudArgs, err := r.initQuery.Insert("package").
+	log.Debug().Msgf("repository.CreatePackage has called with package title: %s", pack.Title)
+
+	crudQuery, crudArgs, err := r.initQuery.
+		Insert("package").
 		Columns("title", "material", "max_volume", "reusable", "created_at").
 		Values(pack.Title, pack.Material, pack.MaximumVolume, pack.Reusable, "now()").
-		Suffix("RETURNING package_id").ToSql()
+		Suffix("RETURNING package_id").
+		ToSql()
 	if err != nil {
 		return 0, err
 	}
@@ -33,6 +38,9 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (ui
 	}
 	defer tx.Rollback()
 
+	log.Debug().Msgf("crud query: %s; args: %v", crudQuery, crudArgs)
+
+	returningID := uint64(0)
 	row := tx.QueryRowxContext(ctx, crudQuery, crudArgs...)
 	if err := row.Scan(&returningID); err != nil {
 		return 0, err
@@ -52,12 +60,16 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (ui
 		return 0, err
 	}
 
-	eventQuery, eventArgs, err := r.initQuery.Insert("package_event").
+	eventQuery, eventArgs, err := r.initQuery.
+		Insert("package_event").
 		Columns("package_id", "event_type", "payload").
-		Values(returningID, "Created", jsonbytes).ToSql()
+		Values(returningID, "Created", jsonbytes).
+		ToSql()
 	if err != nil {
 		return 0, err
 	}
+
+	log.Debug().Msgf("event query: %s; args: %v", eventQuery, eventArgs)
 
 	if _, err := tx.ExecContext(ctx, eventQuery, eventArgs...); err != nil {
 		return 0, err
@@ -66,7 +78,7 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (ui
 	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
-	log.Debug().Msgf("db: package_id %d successfully inserted", returningID)
+	log.Debug().Msgf("repository.CreatePackage: package_id %d inserted", returningID)
 
 	return returningID, nil
 
@@ -74,7 +86,11 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package) (ui
 
 // DescribePackage implements api.RepoCRUD
 func (r *repository) DescribePackage(ctx context.Context, packageID uint64) (*model.Package, error) {
-	query, args, err := r.initQuery.Select("package_id", "title", "material", "max_volume", "reusable", "created_at").
+
+	log.Debug().Msgf("repository.DescribePackage has called with ID: %d", packageID)
+
+	query, args, err := r.initQuery.
+		Select("package_id", "title", "material", "max_volume", "reusable", "created_at").
 		From("package").
 		Where(sq.Eq{"package_id": packageID}).
 		ToSql()
@@ -82,19 +98,31 @@ func (r *repository) DescribePackage(ctx context.Context, packageID uint64) (*mo
 		return nil, err
 	}
 
+	log.Debug().Msgf("query: %s; args: %v", query, args)
+
 	row := r.db.QueryRowxContext(ctx, query, args...)
 
 	unit := model.Package{}
-	if err := row.StructScan(&unit); err != nil {
+	switch err := row.StructScan(&unit); {
+	case errors.Is(err, sql.ErrNoRows):
+		return nil, api.ErrRepoEntityNotFound
+
+	case err != nil:
 		return nil, err
 	}
+
+	log.Debug().Msgf("repository.DescribePackage: package_id %d has read", packageID)
 
 	return &unit, nil
 }
 
 // ListPackages implements api.RepoCRUD
 func (r *repository) ListPackages(ctx context.Context, offset uint64) ([]model.Package, error) {
-	query, args, err := r.initQuery.Select("package_id", "title", "material", "max_volume", "reusable", "created_at").
+
+	log.Debug().Msgf("repository.ListPackages has called with offset %d", offset)
+
+	query, args, err := r.initQuery.
+		Select("package_id", "title", "material", "max_volume", "reusable", "created_at").
 		From("package").
 		Limit(DefaultLimit).
 		Offset(offset).
@@ -102,6 +130,8 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64) ([]model.P
 	if err != nil {
 		return nil, err
 	}
+
+	log.Debug().Msgf("query: %s; args: %v", query, args)
 
 	rows, err := r.db.QueryxContext(ctx, query, args...)
 	if err != nil {
@@ -120,19 +150,32 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64) ([]model.P
 		output = append(output, unit)
 	}
 
+	/****************/
+	returningIDs := make([]uint64, 0, len(output))
+	for _, elem := range output {
+		returningIDs = append(returningIDs, elem.ID)
+	}
+	log.Debug().Msgf("repository.ListPackages: returns packages with IDs: %v", returningIDs)
+	/****************/
+
 	return output, nil
 }
 
 // RemovePackage implements api.RepoCRUD
 func (r *repository) RemovePackage(ctx context.Context, packageID uint64) error {
-	crudQuery, crudArgs, err := r.initQuery.Delete("package").
+
+	log.Debug().Msgf("repository.RemovePackage has called with ID: %d", packageID)
+
+	crudQuery, crudArgs, err := r.initQuery.
+		Delete("package").
 		Where(sq.Eq{"package_id": packageID}).
 		ToSql()
 	if err != nil {
 		return err
 	}
 
-	eventQuery, eventArgs, err := r.initQuery.Insert("package_event").
+	eventQuery, eventArgs, err := r.initQuery.
+		Insert("package_event").
 		Columns("package_id", "event_type").
 		Values(packageID, "Removed").
 		ToSql()
@@ -146,6 +189,8 @@ func (r *repository) RemovePackage(ctx context.Context, packageID uint64) error 
 	}
 	defer tx.Rollback()
 
+	log.Debug().Msgf("crud query: %s; args: %v", crudQuery, crudArgs)
+
 	result, err := tx.ExecContext(ctx, crudQuery, crudArgs...)
 	if err != nil {
 		return err
@@ -158,8 +203,11 @@ func (r *repository) RemovePackage(ctx context.Context, packageID uint64) error 
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("package with id %d not found", packageID)
+		log.Debug().Msgf("package with id %d not found", packageID)
+		return api.ErrRepoEntityNotFound
 	}
+
+	log.Debug().Msgf("event query: %s; args: %v", eventQuery, eventArgs)
 
 	if _, err := tx.ExecContext(ctx, eventQuery, eventArgs...); err != nil {
 		return err
@@ -168,6 +216,8 @@ func (r *repository) RemovePackage(ctx context.Context, packageID uint64) error 
 	if err := tx.Commit(); err != nil {
 		return err
 	}
+
+	log.Debug().Msgf("repository.RemovePackage: removed package with ID: %d", packageID)
 
 	return nil
 }

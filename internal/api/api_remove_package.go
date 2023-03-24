@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 
@@ -19,17 +20,23 @@ func (o *logisticPackageAPI) RemovePackageV1(ctx context.Context, req *pb.Remove
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	err := o.repo.RemovePackage(ctx, req.GetPackageID()) // err used in this scope
-	if err != nil {
-		log.Error().Err(err).Msg("RemovePackageV1 -- failed")
+	switch err := o.repo.RemovePackage(ctx, req.GetPackageID()); {
+	case errors.Is(err, ErrRepoEntityNotFound):
+		log.Debug().Uint64("packageID", req.PackageID).Msg("package not found")
+		totalTemplateNotFound.Inc()
 
+		return nil, status.Error(codes.NotFound, "package not found")
+
+	case err != nil:
+		log.Error().Err(err).Msg("RemovePackageV1 - failed")
 		return nil, status.Error(codes.Internal, err.Error())
+
 	}
 
 	log.Debug().Msg("RemovePackageV1 - success")
 
 	resp := pb.RemovePackageV1Response{
-		Suc: err == nil,
+		Suc: true,
 	}
 
 	return &resp, nil

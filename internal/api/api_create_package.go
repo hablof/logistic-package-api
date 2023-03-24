@@ -15,7 +15,7 @@ func (o *logisticPackageAPI) CreatePackageV1(ctx context.Context, req *pb.Create
 	log.Debug().Msg("logisticPackageAPI.CreatePackageV1 called")
 
 	unit := model.Package{
-		ID:            0, // так норм ?
+		ID:            0, //
 		Title:         req.GetTitle(),
 		Material:      req.GetMaterial(),
 		MaximumVolume: req.GetMaximumVolume(),
