@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/hablof/logistic-package-api/internal/model"
 
@@ -145,13 +146,28 @@ func (r *repository) RemovePackage(ctx context.Context, packageID uint64) error 
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.ExecContext(ctx, crudQuery, crudArgs...); err != nil {
+	result, err := tx.ExecContext(ctx, crudQuery, crudArgs...)
+	if err != nil {
 		return err
+	}
+
+	// fetch rowsAffected to ensure that a least 1 entity was deleted
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("package with id %d not found", packageID)
 	}
 
 	if _, err := tx.ExecContext(ctx, eventQuery, eventArgs...); err != nil {
 		return err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
