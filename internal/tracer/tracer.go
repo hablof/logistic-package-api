@@ -43,6 +43,12 @@ func NewTracer(cfg *config.Config) (io.Closer, error) {
 			LocalAgentHostPort: cfg.Jaeger.Host + cfg.Jaeger.Port,
 		},
 	}
+
+	if cfg.Jaeger.IsRateLimiting {
+		cfgTracer.Sampler.Type = jaeger.SamplerTypeRateLimiting
+		cfgTracer.Sampler.Param = cfg.Jaeger.SpansPerSecond
+	}
+
 	tracer, closer, err := cfgTracer.NewTracer(jaegercfg.Logger(loggerJaeger{}))
 	if err != nil {
 		log.Err(err).Msgf("failed init jaeger: %v", err)

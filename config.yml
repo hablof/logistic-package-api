@@ -1,7 +1,7 @@
 project:
   name: Ozon Code Platform Template API
-  debug: false
-  allowRiseToDebug: true
+  debug: true
+  allowRiseToDebug: false
   environment: development
 
 grpc:
@@ -21,8 +21,11 @@ metrics:
   path: /metrics
 
 jaeger:
+  tracing:
+    rateLimiting: false # false = SamplerTypeConst
+    spansPerSecond: 10
   service: "logistic-package-api"
-  host: "jaeger"
+  host: "localhost"
   port: ":6831"
 
 status:

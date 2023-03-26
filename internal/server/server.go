@@ -104,7 +104,9 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_prometheus.UnaryServerInterceptor,
-			grpc_opentracing.UnaryServerInterceptor(),
+			grpc_opentracing.UnaryServerInterceptor(
+			// grpc_opentracing.WithTracer(opentracing.GlobalTracer()),
+			),
 			grpcrecovery.UnaryServerInterceptor(),
 		)),
 	)

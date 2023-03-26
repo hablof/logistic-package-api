@@ -40,8 +40,8 @@ test:
 .PHONY: generate
 generate: .generate-install-buf .generate-go .generate-python .generate-finalize-go .generate-finalize-python
 
-.PHONY: generate
-generate-go: .generate-install-buf .generate-go .generate-finalize-go
+.PHONY: generate-go
+generate-go:  .generate-go .generate-finalize-go
 
 .generate-install-buf:
 	@ command -v buf 2>&1 > /dev/null || (echo "Install buf" && \
@@ -49,7 +49,7 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
     		chmod +x "$(BUF_EXE)")
 
 .generate-go:
-	$(BUF_EXE) generate
+	buf generate
 
 .generate-python:
 	$(BUF_EXE) generate --template buf.gen.python.yaml
@@ -57,7 +57,7 @@ generate-go: .generate-install-buf .generate-go .generate-finalize-go
 .generate-finalize-go:
 	mv pkg/$(SERVICE_NAME)/github.com/$(SERVICE_PATH)/pkg/$(SERVICE_NAME)/* pkg/$(SERVICE_NAME)
 	rm -rf pkg/$(SERVICE_NAME)/github.com/
-	cd pkg/$(SERVICE_NAME) && ls go.mod || (go mod init github.com/$(SERVICE_PATH)/pkg/$(SERVICE_NAME) && go mod tidy)
+	# cd pkg/$(SERVICE_NAME) && ls go.mod || (go mod init github.com/$(SERVICE_PATH)/pkg/$(SERVICE_NAME) && go mod tidy)
 
 .generate-finalize-python:
 	find pypkg/logistic-package-api -type d -exec touch {}/__init__.py \;

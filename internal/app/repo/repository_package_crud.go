@@ -8,6 +8,7 @@ import (
 
 	"github.com/hablof/logistic-package-api/internal/api"
 	"github.com/hablof/logistic-package-api/internal/model"
+	"github.com/opentracing/opentracing-go"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/rs/zerolog"
@@ -19,6 +20,9 @@ const (
 
 // CreatePackage implements api.RepoCRUD
 func (r *repository) CreatePackage(ctx context.Context, pack *model.Package, log zerolog.Logger) (uint64, error) {
+
+	repoSpan, ctx := opentracing.StartSpanFromContext(ctx, "repository.CreatePackage")
+	defer repoSpan.Finish()
 
 	log.Debug().Msgf("repository.CreatePackage has called with package title: %s", pack.Title)
 
@@ -41,7 +45,11 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package, log
 	log.Debug().Msgf("crud query: %s; args: %v", crudQuery, crudArgs)
 
 	returningID := uint64(0)
+
+	crudSpan, _ := opentracing.StartSpanFromContext(ctx, "crud query")
 	row := tx.QueryRowxContext(ctx, crudQuery, crudArgs...)
+	crudSpan.Finish()
+
 	if err := row.Scan(&returningID); err != nil {
 		return 0, err
 	}
@@ -71,7 +79,11 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package, log
 
 	log.Debug().Msgf("event query: %s; args: %v", eventQuery, eventArgs)
 
-	if _, err := tx.ExecContext(ctx, eventQuery, eventArgs...); err != nil {
+	eventSpan, _ := opentracing.StartSpanFromContext(ctx, "event query")
+	_, err = tx.ExecContext(ctx, eventQuery, eventArgs...)
+	eventSpan.Finish()
+
+	if err != nil {
 		return 0, err
 	}
 
@@ -87,6 +99,9 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package, log
 // DescribePackage implements api.RepoCRUD
 func (r *repository) DescribePackage(ctx context.Context, packageID uint64, log zerolog.Logger) (*model.Package, error) {
 
+	repoSpan, ctx := opentracing.StartSpanFromContext(ctx, "repository.DescribePackage")
+	defer repoSpan.Finish()
+
 	log.Debug().Msgf("repository.DescribePackage has called with ID: %d", packageID)
 
 	query, args, err := r.initQuery.
@@ -100,7 +115,9 @@ func (r *repository) DescribePackage(ctx context.Context, packageID uint64, log 
 
 	log.Debug().Msgf("query: %s; args: %v", query, args)
 
+	crudSpan, _ := opentracing.StartSpanFromContext(ctx, "crud query")
 	row := r.db.QueryRowxContext(ctx, query, args...)
+	crudSpan.Finish()
 
 	unit := model.Package{}
 	switch err := row.StructScan(&unit); {
@@ -119,6 +136,11 @@ func (r *repository) DescribePackage(ctx context.Context, packageID uint64, log 
 // ListPackages implements api.RepoCRUD
 func (r *repository) ListPackages(ctx context.Context, offset uint64, log zerolog.Logger) ([]model.Package, error) {
 
+	repoSpan, ctx := opentracing.StartSpanFromContext(ctx, "repository.ListPackages")
+	defer repoSpan.Finish()
+
+	repoSpan.SetTag("query offset", offset)
+
 	log.Debug().Msgf("repository.ListPackages has called with offset %d", offset)
 
 	query, args, err := r.initQuery.
@@ -133,7 +155,10 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64, log zerolo
 
 	log.Debug().Msgf("query: %s; args: %v", query, args)
 
+	crudSpan, _ := opentracing.StartSpanFromContext(ctx, "crud query")
 	rows, err := r.db.QueryxContext(ctx, query, args...)
+	crudSpan.Finish()
+
 	if err != nil {
 		return nil, err
 	}
@@ -164,6 +189,9 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64, log zerolo
 // RemovePackage implements api.RepoCRUD
 func (r *repository) RemovePackage(ctx context.Context, packageID uint64, log zerolog.Logger) error {
 
+	repoSpan, ctx := opentracing.StartSpanFromContext(ctx, "repository.RemovePackage")
+	defer repoSpan.Finish()
+
 	log.Debug().Msgf("repository.RemovePackage has called with ID: %d", packageID)
 
 	crudQuery, crudArgs, err := r.initQuery.
@@ -191,7 +219,10 @@ func (r *repository) RemovePackage(ctx context.Context, packageID uint64, log ze
 
 	log.Debug().Msgf("crud query: %s; args: %v", crudQuery, crudArgs)
 
+	crudSpan, _ := opentracing.StartSpanFromContext(ctx, "crud query")
 	result, err := tx.ExecContext(ctx, crudQuery, crudArgs...)
+	crudSpan.Finish()
+
 	if err != nil {
 		return err
 	}
@@ -209,7 +240,11 @@ func (r *repository) RemovePackage(ctx context.Context, packageID uint64, log ze
 
 	log.Debug().Msgf("event query: %s; args: %v", eventQuery, eventArgs)
 
-	if _, err := tx.ExecContext(ctx, eventQuery, eventArgs...); err != nil {
+	eventSpan, _ := opentracing.StartSpanFromContext(ctx, "event query")
+	_, err = tx.ExecContext(ctx, eventQuery, eventArgs...)
+	eventSpan.Finish()
+
+	if err != nil {
 		return err
 	}
 

@@ -32,7 +32,7 @@ func createGatewayServer(grpcAddr, gatewayAddr string) *http.Server {
 		grpcAddr,
 		grpc.WithUnaryInterceptor(
 			grpc_opentracing.UnaryClientInterceptor(
-				grpc_opentracing.WithTracer(opentracing.GlobalTracer()),
+			// grpc_opentracing.WithTracer(opentracing.GlobalTracer()),
 			),
 		),
 		grpc.WithInsecure(),
