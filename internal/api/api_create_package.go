@@ -6,17 +6,13 @@ import (
 	"github.com/hablof/logistic-package-api/internal/model"
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 
-	"github.com/rs/zerolog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 func (o *logisticPackageAPI) CreatePackageV1(ctx context.Context, req *pb.CreatePackageV1Request) (*pb.CreatePackageV1Response, error) {
 
-	log := o.logger
-	if o.shouldRiseDebugLevel(ctx) {
-		log = log.Level(zerolog.DebugLevel)
-	}
+	log := o.setupLogger(ctx)
 
 	log.Debug().Msg("logisticPackageAPI.CreatePackageV1 called")
 

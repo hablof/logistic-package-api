@@ -4,7 +4,6 @@ import (
 	"context"
 
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
-	"github.com/rs/zerolog"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -12,10 +11,7 @@ import (
 
 func (o *logisticPackageAPI) ListPackagesV1(ctx context.Context, req *pb.ListPackagesV1Request) (*pb.ListPackagesV1Response, error) {
 
-	log := o.logger
-	if o.shouldRiseDebugLevel(ctx) {
-		log = log.Level(zerolog.DebugLevel)
-	}
+	log := o.setupLogger(ctx)
 
 	log.Debug().Msg("logisticPackageAPI.ListPackagesV1 called")
 

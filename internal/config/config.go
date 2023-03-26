@@ -108,6 +108,7 @@ type Metrics struct {
 
 // Jaeger - contains all parameters metrics information.
 type Jaeger struct {
+	LogSpans       bool    `yaml:"logSpans"`
 	IsRateLimiting bool    `yaml:"rateLimiting"`
 	SpansPerSecond float64 `yaml:"spansPerSecond"`
 	Service        string  `yaml:"service"`

@@ -5,9 +5,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog"
+	"github.com/uber/jaeger-client-go"
 	"google.golang.org/grpc/metadata"
 
 	"github.com/hablof/logistic-package-api/internal/model"
@@ -74,4 +76,16 @@ func (o *logisticPackageAPI) shouldRiseDebugLevel(ctx context.Context) bool {
 		return true
 	}
 	return false
+}
+
+func (o *logisticPackageAPI) setupLogger(ctx context.Context) zerolog.Logger {
+	log := o.logger
+	if o.shouldRiseDebugLevel(ctx) {
+		log = log.Level(zerolog.DebugLevel)
+	}
+
+	if sc, ok := opentracing.SpanFromContext(ctx).Context().(jaeger.SpanContext); ok {
+		log = log.With().Str("traceID", sc.TraceID().String()).Logger()
+	}
+	return log
 }

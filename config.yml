@@ -22,6 +22,7 @@ metrics:
 
 jaeger:
   tracing:
+    logSpans: false
     rateLimiting: false # false = SamplerTypeConst
     spansPerSecond: 10
   service: "logistic-package-api"

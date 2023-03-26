@@ -6,7 +6,6 @@ import (
 
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 
-	"github.com/rs/zerolog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -14,10 +13,7 @@ import (
 
 func (o *logisticPackageAPI) DescribePackageV1(ctx context.Context, req *pb.DescribePackageV1Request) (*pb.DescribePackageV1Response, error) {
 
-	log := o.logger
-	if o.shouldRiseDebugLevel(ctx) {
-		log = log.Level(zerolog.DebugLevel)
-	}
+	log := o.setupLogger(ctx)
 
 	log.Debug().Msg("logisticPackageAPI.DescribePackageV1 called")
 

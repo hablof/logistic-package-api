@@ -39,7 +39,7 @@ func NewTracer(cfg *config.Config) (io.Closer, error) {
 			Param: 1,
 		},
 		Reporter: &jaegercfg.ReporterConfig{
-			LogSpans:           true,
+			LogSpans:           cfg.Jaeger.LogSpans,
 			LocalAgentHostPort: cfg.Jaeger.Host + cfg.Jaeger.Port,
 		},
 	}
