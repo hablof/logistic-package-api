@@ -35,6 +35,8 @@ func (o *logisticPackageAPI) CreatePackageV1(ctx context.Context, req *pb.Create
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	totalCUDevents.Inc()
+
 	log.Debug().Msg("CreatePackageV1 - success")
 
 	resp := pb.CreatePackageV1Response{

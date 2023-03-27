@@ -22,8 +22,12 @@ const (
 
 var (
 	totalTemplateNotFound = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "logistic_package_api_template_not_found_total",
-		Help: "Total number of templates that were not found",
+		Name: "logistic_package_api_not_found_total",
+		Help: "Total number of packages that were not found",
+	})
+	totalCUDevents = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "logistic_package_api_cud_event_total",
+		Help: "Total number of CUD events",
 	})
 )
 

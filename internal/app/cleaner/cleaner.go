@@ -43,6 +43,8 @@ type cleaner struct {
 	// unlockQueue []uint64
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
+
+	gaugeSubFunc func(float64)
 }
 
 type CleanerConfig struct {
@@ -51,6 +53,7 @@ type CleanerConfig struct {
 	Repo             RepoEventCleaner
 	CleanerChannel   <-chan PackageCleanerEvent
 	CleanupInterval  time.Duration
+	GaugeSubFunc     func(float64)
 }
 
 func NewDbCleaner(cfg CleanerConfig) Cleaner {
@@ -64,6 +67,7 @@ func NewDbCleaner(cfg CleanerConfig) Cleaner {
 		batchSize:             cfg.CleanerBatchSize,
 		forcedCleanupInterval: cfg.CleanupInterval,
 		workerPool:            wp,
+		gaugeSubFunc:          cfg.GaugeSubFunc,
 		cancel: func() {
 		},
 		wg: wg,
@@ -81,11 +85,17 @@ func (c *cleaner) runHandler(ctx context.Context) {
 		case <-ticker.C:
 			if len(removeQueue) > 0 {
 				c.submitToRemove(removeQueue)
+				c.gaugeSubFunc(float64(len(removeQueue)))
+
+				// reallocate local slice
 				removeQueue = make([]uint64, 0, c.batchSize)
 			}
 
 			if len(unlockQueue) > 0 {
 				c.submitToUnlock(unlockQueue)
+				c.gaugeSubFunc(float64(len(unlockQueue)))
+
+				// reallocate local slice
 				unlockQueue = make([]uint64, 0, c.batchSize)
 			}
 
@@ -100,11 +110,17 @@ func (c *cleaner) runHandler(ctx context.Context) {
 
 			if len(removeQueue) >= int(c.batchSize) {
 				c.submitToRemove(removeQueue)
+				c.gaugeSubFunc(float64(len(removeQueue)))
+
+				// reallocate local slice
 				removeQueue = make([]uint64, 0, c.batchSize)
 			}
 
 			if len(unlockQueue) >= int(c.batchSize) {
 				c.submitToUnlock(unlockQueue)
+				c.gaugeSubFunc(float64(len(unlockQueue)))
+
+				// reallocate local slice
 				unlockQueue = make([]uint64, 0, c.batchSize)
 			}
 			ticker.Reset(c.forcedCleanupInterval)
@@ -113,10 +129,12 @@ func (c *cleaner) runHandler(ctx context.Context) {
 			ticker.Stop()
 			if len(removeQueue) > 0 {
 				c.submitToRemove(removeQueue)
+				c.gaugeSubFunc(float64(len(removeQueue)))
 			}
 
 			if len(unlockQueue) > 0 {
 				c.submitToUnlock(unlockQueue)
+				c.gaugeSubFunc(float64(len(unlockQueue)))
 			}
 			return
 		}

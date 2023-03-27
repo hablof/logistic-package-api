@@ -8,7 +8,16 @@ import (
 	"github.com/hablof/logistic-package-api/internal/app/producer"
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog/log"
+)
+
+var (
+	totalRetranslatorEvents = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "logistic_package_api_retranslator_events_processing",
+		Help: "Total number of events processing in retranslator",
+	})
 )
 
 type Retranslator interface {
@@ -48,6 +57,7 @@ func NewRetranslator(cfg RetranslatorConfig) Retranslator {
 		Repo:            cfg.ConsumerRepo,
 		BatchSize:       cfg.BatchSize,
 		ConsumeInterval: cfg.ConsumeInterval,
+		GaugeAddFunc:    totalRetranslatorEvents.Add,
 	}
 
 	producerCfg := producer.ProducerConfig{
@@ -63,6 +73,7 @@ func NewRetranslator(cfg RetranslatorConfig) Retranslator {
 		Repo:             cfg.CleanerRepo,
 		CleanerChannel:   cleanerChannel,
 		CleanupInterval:  cfg.ConsumeInterval,
+		GaugeSubFunc:     totalRetranslatorEvents.Sub,
 	}
 
 	consumer := consumer.NewDbConsumer(consumerCfg)

@@ -35,6 +35,8 @@ func (o *logisticPackageAPI) RemovePackageV1(ctx context.Context, req *pb.Remove
 
 	}
 
+	totalCUDevents.Inc()
+
 	log.Debug().Msg("RemovePackageV1 - success")
 
 	resp := pb.RemovePackageV1Response{

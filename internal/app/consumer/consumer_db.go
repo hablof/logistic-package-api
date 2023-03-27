@@ -29,6 +29,8 @@ type consumer struct {
 
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
+
+	gaugeAddFunc func(float64)
 }
 
 type ConsumerConfig struct {
@@ -37,6 +39,7 @@ type ConsumerConfig struct {
 	Repo            RepoEventConsumer
 	BatchSize       uint64
 	ConsumeInterval time.Duration
+	GaugeAddFunc    func(float64)
 }
 
 func NewDbConsumer(cfg ConsumerConfig) Consumer {
@@ -50,6 +53,7 @@ func NewDbConsumer(cfg ConsumerConfig) Consumer {
 		repo:            cfg.Repo,
 		eventsChannel:   cfg.EventsChannel,
 		wg:              wg,
+		gaugeAddFunc:    cfg.GaugeAddFunc,
 	}
 }
 
@@ -79,6 +83,11 @@ func (c *consumer) runHandler(ctx context.Context) {
 				log.Debug().Err(err).Msg("consumer failed to Lock")
 				continue
 			}
+
+			if len(events) > 0 {
+				c.gaugeAddFunc(float64(len(events))) // metrics
+			}
+
 			for _, event := range events {
 				c.eventsChannel <- event
 			}
