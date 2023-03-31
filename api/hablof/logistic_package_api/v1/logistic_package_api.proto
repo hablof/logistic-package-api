@@ -35,6 +35,16 @@ service LogisticPackageApiService {
       delete: "/v1/packages/{PackageID}"
     };
   }
+
+  rpc UpdatePackageV1 (UpdatePackageV1Request) returns (UpdatePackageV1Response){
+    option (google.api.http) = {
+      put: "/v1/packages/{PackageID}"
+    };
+  }
+}
+
+message MaybeTimestamp {
+  google.protobuf.Timestamp Time = 1;
 }
 
 message Package {
@@ -44,18 +54,27 @@ message Package {
 	float MaximumVolume = 4;  //cm^3
 	bool Reusable = 5;
   google.protobuf.Timestamp Created = 6;
+  MaybeTimestamp Updated = 7;
 }
 
+message MsgReusable {
+  bool Reusable = 1;
+}
+
+// Create
+
 message CreatePackageV1Request {
-  string Title = 1 [(validate.rules).string.max_len = 32];
-	string Material = 2 [(validate.rules).string.max_len = 32];
-	float MaximumVolume = 3 [(validate.rules).float.gte = 0];  
+  string Title = 1 [(validate.rules).string = {max_len: 32, min_len: 1}]; // not empty
+	string Material = 2 [(validate.rules).string = {max_len: 32, min_len: 1}]; // not empty
+	float MaximumVolume = 3 [(validate.rules).float.gt = 0]; // not 0
 	bool Reusable = 4; 
 }
 
 message CreatePackageV1Response {
   uint64 ID  = 1;
 }
+
+// Describe
 
 message DescribePackageV1Request {
   uint64 PackageID = 1 [(validate.rules).uint64.gt = 0];
@@ -65,6 +84,8 @@ message DescribePackageV1Response {
   Package Value = 1;
 }
 
+// List
+
 message ListPackagesV1Request {
   uint64 Offset = 1 [(validate.rules).uint64.gte = 0];
 }
@@ -73,10 +94,26 @@ message ListPackagesV1Response {
   repeated string PackageTitle = 1;
 }
 
+// Remove
+
 message RemovePackageV1Request {
   uint64 PackageID = 1 [(validate.rules).uint64.gt = 0];
 }
 
 message RemovePackageV1Response {
+  bool Suc = 1;
+}
+
+// Update
+
+message UpdatePackageV1Request {
+  uint64 PackageID = 1 [(validate.rules).uint64.gt = 0]; // id to update
+  string Title = 2 [(validate.rules).string.max_len = 32]; // zero val == empty
+	string Material = 3 [(validate.rules).string.max_len = 32]; // zero val == empty
+	float MaximumVolume = 4 [(validate.rules).float.gte = 0];  // zero val == empty
+	MsgReusable MsgReusable = 5; 
+}
+
+message UpdatePackageV1Response {
   bool Suc = 1;
 }

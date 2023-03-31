@@ -22,6 +22,7 @@ type LogisticPackageApiServiceClient interface {
 	DescribePackageV1(ctx context.Context, in *DescribePackageV1Request, opts ...grpc.CallOption) (*DescribePackageV1Response, error)
 	ListPackagesV1(ctx context.Context, in *ListPackagesV1Request, opts ...grpc.CallOption) (*ListPackagesV1Response, error)
 	RemovePackageV1(ctx context.Context, in *RemovePackageV1Request, opts ...grpc.CallOption) (*RemovePackageV1Response, error)
+	UpdatePackageV1(ctx context.Context, in *UpdatePackageV1Request, opts ...grpc.CallOption) (*UpdatePackageV1Response, error)
 }
 
 type logisticPackageApiServiceClient struct {
@@ -68,6 +69,15 @@ func (c *logisticPackageApiServiceClient) RemovePackageV1(ctx context.Context, i
 	return out, nil
 }
 
+func (c *logisticPackageApiServiceClient) UpdatePackageV1(ctx context.Context, in *UpdatePackageV1Request, opts ...grpc.CallOption) (*UpdatePackageV1Response, error) {
+	out := new(UpdatePackageV1Response)
+	err := c.cc.Invoke(ctx, "/hablof.logistic_package_api.v1.LogisticPackageApiService/UpdatePackageV1", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LogisticPackageApiServiceServer is the server API for LogisticPackageApiService service.
 // All implementations must embed UnimplementedLogisticPackageApiServiceServer
 // for forward compatibility
@@ -76,6 +86,7 @@ type LogisticPackageApiServiceServer interface {
 	DescribePackageV1(context.Context, *DescribePackageV1Request) (*DescribePackageV1Response, error)
 	ListPackagesV1(context.Context, *ListPackagesV1Request) (*ListPackagesV1Response, error)
 	RemovePackageV1(context.Context, *RemovePackageV1Request) (*RemovePackageV1Response, error)
+	UpdatePackageV1(context.Context, *UpdatePackageV1Request) (*UpdatePackageV1Response, error)
 	mustEmbedUnimplementedLogisticPackageApiServiceServer()
 }
 
@@ -94,6 +105,9 @@ func (UnimplementedLogisticPackageApiServiceServer) ListPackagesV1(context.Conte
 }
 func (UnimplementedLogisticPackageApiServiceServer) RemovePackageV1(context.Context, *RemovePackageV1Request) (*RemovePackageV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemovePackageV1 not implemented")
+}
+func (UnimplementedLogisticPackageApiServiceServer) UpdatePackageV1(context.Context, *UpdatePackageV1Request) (*UpdatePackageV1Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePackageV1 not implemented")
 }
 func (UnimplementedLogisticPackageApiServiceServer) mustEmbedUnimplementedLogisticPackageApiServiceServer() {
 }
@@ -181,6 +195,24 @@ func _LogisticPackageApiService_RemovePackageV1_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LogisticPackageApiService_UpdatePackageV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePackageV1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogisticPackageApiServiceServer).UpdatePackageV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/hablof.logistic_package_api.v1.LogisticPackageApiService/UpdatePackageV1",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogisticPackageApiServiceServer).UpdatePackageV1(ctx, req.(*UpdatePackageV1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LogisticPackageApiService_ServiceDesc is the grpc.ServiceDesc for LogisticPackageApiService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -203,6 +235,10 @@ var LogisticPackageApiService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemovePackageV1",
 			Handler:    _LogisticPackageApiService_RemovePackageV1_Handler,
+		},
+		{
+			MethodName: "UpdatePackageV1",
+			Handler:    _LogisticPackageApiService_UpdatePackageV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

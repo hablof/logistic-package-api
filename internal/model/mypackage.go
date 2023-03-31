@@ -22,12 +22,13 @@ const (
 )
 
 type Package struct {
-	ID            uint64    `db:"package_id"`
-	Title         string    `db:"title"`
-	Material      string    `db:"material"`
-	MaximumVolume float32   `db:"max_volume"`
-	Reusable      bool      `db:"reusable"`
-	Created       time.Time `db:"created_at"`
+	ID            uint64     `db:"package_id"`
+	Title         string     `db:"title"`
+	Material      string     `db:"material"`
+	MaximumVolume float32    `db:"max_volume"`
+	Reusable      bool       `db:"reusable"`
+	Created       time.Time  `db:"created_at"`
+	Updated       *time.Time `db:"updated_at"`
 }
 
 type PackageEvent struct {

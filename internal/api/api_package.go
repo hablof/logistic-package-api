@@ -36,6 +36,7 @@ type RepoCRUD interface {
 	DescribePackage(ctx context.Context, packageID uint64, logger zerolog.Logger) (*model.Package, error)
 	ListPackages(ctx context.Context, offset uint64, logger zerolog.Logger) ([]model.Package, error)
 	RemovePackage(ctx context.Context, packageID uint64, logger zerolog.Logger) error
+	UpdatePackage(ctx context.Context, packageID uint64, changes map[FieldName]interface{}, log zerolog.Logger) error
 }
 
 type logisticPackageAPI struct {
@@ -82,6 +83,8 @@ func (o *logisticPackageAPI) shouldRiseDebugLevel(ctx context.Context) bool {
 	return false
 }
 
+// Rises log level to Debug if it needed.
+// Sets Jaeger TraceID as log field.
 func (o *logisticPackageAPI) setupLogger(ctx context.Context) zerolog.Logger {
 	log := o.logger
 	if o.shouldRiseDebugLevel(ctx) {

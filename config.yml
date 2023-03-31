@@ -62,8 +62,8 @@ kafka:
 retranslator:
   enabled: true
   channelSize: 512
-  consumerCount: 1
-  batchSize: 10
+  consumerCount: 2
+  batchSize: 5
   consumeInterval: 30s
   producerCount: 8
   workerCount: 2

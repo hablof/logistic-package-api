@@ -38,14 +38,20 @@ func (o *logisticPackageAPI) DescribePackageV1(ctx context.Context, req *pb.Desc
 
 	log.Debug().Msg("DescribePackageV1 - success")
 
-	return &pb.DescribePackageV1Response{
-		Value: &pb.Package{
-			ID:            unit.ID,
-			Title:         unit.Title,
-			Material:      unit.Material,
-			MaximumVolume: unit.MaximumVolume,
-			Reusable:      unit.Reusable,
-			Created:       timestamppb.New(unit.Created),
-		},
-	}, nil
+	output := pb.Package{
+		ID:            unit.ID,
+		Title:         unit.Title,
+		Material:      unit.Material,
+		MaximumVolume: unit.MaximumVolume,
+		Reusable:      unit.Reusable,
+		Created:       timestamppb.New(unit.Created),
+	}
+
+	if unit.Updated != nil {
+		output.Updated = &pb.MaybeTimestamp{
+			Time: timestamppb.New(*unit.Updated),
+		}
+	}
+
+	return &pb.DescribePackageV1Response{Value: &output}, nil
 }

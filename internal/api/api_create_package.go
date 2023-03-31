@@ -16,17 +16,17 @@ func (o *logisticPackageAPI) CreatePackageV1(ctx context.Context, req *pb.Create
 
 	log.Debug().Msg("logisticPackageAPI.CreatePackageV1 called")
 
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("logisticPackageAPI.CreatePackageV1 failed")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
 	unit := model.Package{
 		ID:            0, //
 		Title:         req.GetTitle(),
 		Material:      req.GetMaterial(),
 		MaximumVolume: req.GetMaximumVolume(),
 		Reusable:      req.GetReusable(),
-	}
-
-	if err := req.Validate(); err != nil {
-		log.Error().Err(err).Msg("logisticPackageAPI.CreatePackageV1 failed")
-		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	newID, err := o.repo.CreatePackage(ctx, &unit, log)

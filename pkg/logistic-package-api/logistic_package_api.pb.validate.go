@@ -33,6 +33,81 @@ var (
 	_ = anypb.Any{}
 )
 
+// Validate checks the field values on MaybeTimestamp with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *MaybeTimestamp) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if v, ok := interface{}(m.GetTime()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MaybeTimestampValidationError{
+				field:  "Time",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// MaybeTimestampValidationError is the validation error returned by
+// MaybeTimestamp.Validate if the designated constraints aren't met.
+type MaybeTimestampValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MaybeTimestampValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MaybeTimestampValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MaybeTimestampValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MaybeTimestampValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MaybeTimestampValidationError) ErrorName() string { return "MaybeTimestampValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MaybeTimestampValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMaybeTimestamp.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MaybeTimestampValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MaybeTimestampValidationError{}
+
 // Validate checks the field values on Package with the rules defined in the
 // proto definition for this message. If any rules are violated, an error is returned.
 func (m *Package) Validate() error {
@@ -54,6 +129,16 @@ func (m *Package) Validate() error {
 		if err := v.Validate(); err != nil {
 			return PackageValidationError{
 				field:  "Created",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if v, ok := interface{}(m.GetUpdated()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PackageValidationError{
+				field:  "Updated",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -117,6 +202,73 @@ var _ interface {
 	ErrorName() string
 } = PackageValidationError{}
 
+// Validate checks the field values on MsgReusable with the rules defined in
+// the proto definition for this message. If any rules are violated, an error
+// is returned.
+func (m *MsgReusable) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Reusable
+
+	return nil
+}
+
+// MsgReusableValidationError is the validation error returned by
+// MsgReusable.Validate if the designated constraints aren't met.
+type MsgReusableValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MsgReusableValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MsgReusableValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MsgReusableValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MsgReusableValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MsgReusableValidationError) ErrorName() string { return "MsgReusableValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MsgReusableValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMsgReusable.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MsgReusableValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MsgReusableValidationError{}
+
 // Validate checks the field values on CreatePackageV1Request with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, an error is returned.
@@ -125,24 +277,24 @@ func (m *CreatePackageV1Request) Validate() error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(m.GetTitle()) > 32 {
+	if l := utf8.RuneCountInString(m.GetTitle()); l < 1 || l > 32 {
 		return CreatePackageV1RequestValidationError{
 			field:  "Title",
-			reason: "value length must be at most 32 runes",
+			reason: "value length must be between 1 and 32 runes, inclusive",
 		}
 	}
 
-	if utf8.RuneCountInString(m.GetMaterial()) > 32 {
+	if l := utf8.RuneCountInString(m.GetMaterial()); l < 1 || l > 32 {
 		return CreatePackageV1RequestValidationError{
 			field:  "Material",
-			reason: "value length must be at most 32 runes",
+			reason: "value length must be between 1 and 32 runes, inclusive",
 		}
 	}
 
-	if m.GetMaximumVolume() < 0 {
+	if m.GetMaximumVolume() <= 0 {
 		return CreatePackageV1RequestValidationError{
 			field:  "MaximumVolume",
-			reason: "value must be greater than or equal to 0",
+			reason: "value must be greater than 0",
 		}
 	}
 
@@ -710,3 +862,177 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RemovePackageV1ResponseValidationError{}
+
+// Validate checks the field values on UpdatePackageV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdatePackageV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if m.GetPackageID() <= 0 {
+		return UpdatePackageV1RequestValidationError{
+			field:  "PackageID",
+			reason: "value must be greater than 0",
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetTitle()) > 32 {
+		return UpdatePackageV1RequestValidationError{
+			field:  "Title",
+			reason: "value length must be at most 32 runes",
+		}
+	}
+
+	if utf8.RuneCountInString(m.GetMaterial()) > 32 {
+		return UpdatePackageV1RequestValidationError{
+			field:  "Material",
+			reason: "value length must be at most 32 runes",
+		}
+	}
+
+	if m.GetMaximumVolume() < 0 {
+		return UpdatePackageV1RequestValidationError{
+			field:  "MaximumVolume",
+			reason: "value must be greater than or equal to 0",
+		}
+	}
+
+	if v, ok := interface{}(m.GetMsgReusable()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpdatePackageV1RequestValidationError{
+				field:  "MsgReusable",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	return nil
+}
+
+// UpdatePackageV1RequestValidationError is the validation error returned by
+// UpdatePackageV1Request.Validate if the designated constraints aren't met.
+type UpdatePackageV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdatePackageV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdatePackageV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdatePackageV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdatePackageV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdatePackageV1RequestValidationError) ErrorName() string {
+	return "UpdatePackageV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdatePackageV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdatePackageV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdatePackageV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdatePackageV1RequestValidationError{}
+
+// Validate checks the field values on UpdatePackageV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *UpdatePackageV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	// no validation rules for Suc
+
+	return nil
+}
+
+// UpdatePackageV1ResponseValidationError is the validation error returned by
+// UpdatePackageV1Response.Validate if the designated constraints aren't met.
+type UpdatePackageV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdatePackageV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdatePackageV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdatePackageV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdatePackageV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdatePackageV1ResponseValidationError) ErrorName() string {
+	return "UpdatePackageV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdatePackageV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdatePackageV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdatePackageV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdatePackageV1ResponseValidationError{}
