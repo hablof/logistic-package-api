@@ -10,7 +10,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-type scanPackageStruct struct {
+type packageEventScanStruct struct {
 	ID        uint64    `db:"package_event_id"`
 	PackageID uint64    `db:"package_id"`
 	Type      string    `db:"event_type"`
@@ -30,7 +30,7 @@ func (r *repository) Lock(limit uint64) ([]model.PackageEvent, error) { // use r
 
 	query, args, err := r.initQuery.Update("package_event").
 		Set("event_status", "Locked").
-		Where("package_event_id IN (SELECT package_event_id FROM package_event WHERE event_status = ? LIMIT ?)", "Unlocked", limit).
+		Where("package_event_id IN (SELECT package_event_id FROM package_event WHERE event_status = ? LIMIT ? FOR UPDATE SKIP LOCKED)", "Unlocked", limit).
 		Suffix("RETURNING package_event_id, package_id, event_type, event_status, payload, created_at").
 		ToSql()
 	if err != nil {
@@ -51,7 +51,7 @@ func (r *repository) Lock(limit uint64) ([]model.PackageEvent, error) { // use r
 		return nil, err
 	}
 
-	scanUnit := scanPackageStruct{}
+	scanUnit := packageEventScanStruct{}
 
 	output := make([]model.PackageEvent, 0, limit)
 	for rows.Next() {
@@ -79,7 +79,7 @@ func (r *repository) Lock(limit uint64) ([]model.PackageEvent, error) { // use r
 }
 
 // Postgres ENUM to golang types
-func (*repository) decodeScanStruct(scanUnit scanPackageStruct) model.PackageEvent {
+func (*repository) decodeScanStruct(scanUnit packageEventScanStruct) model.PackageEvent {
 	unit := model.PackageEvent{
 		ID:        scanUnit.ID,
 		PackageID: scanUnit.PackageID,
