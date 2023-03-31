@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package hablof.proto.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/hablof/logistic-package-api/pkg/kafka-proto;kafka-proto";
+
+enum EventType {
+  // _ = 0;
+  Created = 1;
+  Updated = 2;
+  Removed = 3;  
+}
+
+message PackageEvent {
+  uint64 ID  = 1;
+  uint64 PackageID  = 2;
+  EventType Type = 3;
+  google.protobuf.Timestamp Created = 4;
+  bytes Payload = 5;
+}

@@ -27,8 +27,8 @@ import (
 	"github.com/hablof/logistic-package-api/internal/api"
 	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/retranslator"
+	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/config"
-	"github.com/hablof/logistic-package-api/internal/mocks"
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 )
 
@@ -118,6 +118,11 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(grpcServer)
 
+	kp, err := sender.NewKafkaProducer(cfg.Kafka)
+	if err != nil {
+		return err
+	}
+
 	if cfg.Retranslator.Enabled {
 		rtrCFG := retranslator.RetranslatorConfig{
 			ChannelSize:     uint64(cfg.Retranslator.ChannelSize),
@@ -128,7 +133,7 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 			WorkerCount:     cfg.Retranslator.WorkerCount,
 			CleanerRepo:     r,
 			ConsumerRepo:    r,
-			Sender:          &mocks.SillySender{},
+			Sender:          kp,
 		}
 
 		rtr := retranslator.NewRetranslator(rtrCFG)

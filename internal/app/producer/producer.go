@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
-	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
 	"github.com/rs/zerolog/log"
 )
@@ -16,6 +15,10 @@ type Producer interface {
 	Close()
 }
 
+type EventSender interface {
+	Send(subdomain *model.PackageEvent) error
+}
+
 type producer struct {
 	producerCount uint64
 
@@ -23,7 +26,7 @@ type producer struct {
 
 	// maximumKeepOrderAttempts model.TimesDefered
 	// orderManager             ordermanager.OrderManager
-	sender        sender.EventSender
+	sender        EventSender
 	eventsChannel chan model.PackageEvent
 
 	wg     *sync.WaitGroup
@@ -33,7 +36,7 @@ type producer struct {
 type ProducerConfig struct {
 	// maximumKeepOrderAttempts model.TimesDefered
 	ProducerCount  uint64
-	Sender         sender.EventSender
+	Sender         EventSender
 	CleanerChannel chan<- cleaner.PackageCleanerEvent
 	EventsChannel  chan model.PackageEvent
 }

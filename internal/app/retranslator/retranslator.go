@@ -6,7 +6,6 @@ import (
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
 	"github.com/hablof/logistic-package-api/internal/app/consumer"
 	"github.com/hablof/logistic-package-api/internal/app/producer"
-	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/model"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -37,7 +36,7 @@ type RetranslatorConfig struct {
 
 	CleanerRepo  cleaner.RepoEventCleaner
 	ConsumerRepo consumer.RepoEventConsumer
-	Sender       sender.EventSender
+	Sender       producer.EventSender
 }
 
 type retranslator struct {
