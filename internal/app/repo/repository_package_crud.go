@@ -68,7 +68,7 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package, log
 		Insert(packageTable).
 		Columns(titleCol, materialCol, maxVolumeCol, reusableCol, createdAtCol).
 		Values(pack.Title, pack.Material, pack.MaximumVolume, pack.Reusable, "now()").
-		Suffix("RETURNING package_id").
+		Suffix("RETURNING package_id, created_at").
 		ToSql()
 	if err != nil {
 		return 0, err
@@ -83,12 +83,13 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package, log
 	log.Debug().Msgf("crud query: %s; args: %v", crudQuery, crudArgs)
 
 	returningID := uint64(0)
+	timestamp := time.Time{}
 
 	crudSpan, _ := opentracing.StartSpanFromContext(ctx, "crud query")
 	row := tx.QueryRowxContext(ctx, crudQuery, crudArgs...)
 	crudSpan.Finish()
 
-	if err := row.Scan(&returningID); err != nil {
+	if err := row.Scan(&returningID, &timestamp); err != nil {
 		return 0, err
 	}
 
@@ -98,7 +99,7 @@ func (r *repository) CreatePackage(ctx context.Context, pack *model.Package, log
 		Material:      pack.Material,
 		MaximumVolume: pack.MaximumVolume,
 		Reusable:      pack.Reusable,
-		Created:       pack.Created,
+		Created:       timestamp,
 		Updated:       nil,
 	}
 

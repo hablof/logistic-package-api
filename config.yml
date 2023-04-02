@@ -56,7 +56,7 @@ kafka:
   topic: "omp-package-events"
   groupId: "logistic-package-api"
   brokers:
-    - "kafka:9092"
+    # - "kafka:9092"
     - "localhost:9094"
 
 retranslator:

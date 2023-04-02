@@ -91,7 +91,7 @@ func (r *retranslator) Start() {
 	r.producer.Start()
 	r.consumer.Start()
 	r.cleaner.Start()
-	log.Debug().Msg("retranslator started")
+	log.Info().Msg("retranslator started")
 }
 
 func (r *retranslator) Close() {
@@ -101,4 +101,5 @@ func (r *retranslator) Close() {
 	r.consumer.Close()
 	r.producer.Close()
 	r.cleaner.Close()
+	log.Info().Msg("retranslator shut down correctly")
 }
