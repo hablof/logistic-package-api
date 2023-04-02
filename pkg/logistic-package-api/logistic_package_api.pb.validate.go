@@ -202,10 +202,9 @@ var _ interface {
 	ErrorName() string
 } = PackageValidationError{}
 
-// Validate checks the field values on MsgReusable with the rules defined in
-// the proto definition for this message. If any rules are violated, an error
-// is returned.
-func (m *MsgReusable) Validate() error {
+// Validate checks the field values on MaybeBool with the rules defined in the
+// proto definition for this message. If any rules are violated, an error is returned.
+func (m *MaybeBool) Validate() error {
 	if m == nil {
 		return nil
 	}
@@ -215,9 +214,9 @@ func (m *MsgReusable) Validate() error {
 	return nil
 }
 
-// MsgReusableValidationError is the validation error returned by
-// MsgReusable.Validate if the designated constraints aren't met.
-type MsgReusableValidationError struct {
+// MaybeBoolValidationError is the validation error returned by
+// MaybeBool.Validate if the designated constraints aren't met.
+type MaybeBoolValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -225,22 +224,22 @@ type MsgReusableValidationError struct {
 }
 
 // Field function returns field value.
-func (e MsgReusableValidationError) Field() string { return e.field }
+func (e MaybeBoolValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e MsgReusableValidationError) Reason() string { return e.reason }
+func (e MaybeBoolValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e MsgReusableValidationError) Cause() error { return e.cause }
+func (e MaybeBoolValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e MsgReusableValidationError) Key() bool { return e.key }
+func (e MaybeBoolValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e MsgReusableValidationError) ErrorName() string { return "MsgReusableValidationError" }
+func (e MaybeBoolValidationError) ErrorName() string { return "MaybeBoolValidationError" }
 
 // Error satisfies the builtin error interface
-func (e MsgReusableValidationError) Error() string {
+func (e MaybeBoolValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -252,14 +251,14 @@ func (e MsgReusableValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sMsgReusable.%s: %s%s",
+		"invalid %sMaybeBool.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = MsgReusableValidationError{}
+var _ error = MaybeBoolValidationError{}
 
 var _ interface {
 	Field() string
@@ -267,7 +266,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = MsgReusableValidationError{}
+} = MaybeBoolValidationError{}
 
 // Validate checks the field values on CreatePackageV1Request with the rules
 // defined in the proto definition for this message. If any rules are
@@ -899,10 +898,10 @@ func (m *UpdatePackageV1Request) Validate() error {
 		}
 	}
 
-	if v, ok := interface{}(m.GetMsgReusable()).(interface{ Validate() error }); ok {
+	if v, ok := interface{}(m.GetReusable()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return UpdatePackageV1RequestValidationError{
-				field:  "MsgReusable",
+				field:  "Reusable",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

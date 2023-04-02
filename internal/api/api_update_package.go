@@ -45,7 +45,7 @@ func (o *logisticPackageAPI) UpdatePackageV1(ctx context.Context, req *pb.Update
 		changes[MaxVolume] = maxVolume
 	}
 
-	if msgReuseable := req.GetMsgReusable(); msgReuseable != nil {
+	if msgReuseable := req.GetReusable(); msgReuseable != nil {
 		changes[Reusable] = msgReuseable.GetReusable()
 	}
 

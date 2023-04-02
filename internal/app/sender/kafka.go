@@ -4,7 +4,10 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/hablof/logistic-package-api/internal/config"
 	"github.com/hablof/logistic-package-api/internal/model"
+	kpb "github.com/hablof/logistic-package-api/pkg/kafka-proto"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type KafkaProducer struct {
@@ -30,11 +33,32 @@ func NewKafkaProducer(cfg config.Kafka) (*KafkaProducer, error) {
 	}, nil
 }
 
-func (kp *KafkaProducer) Send(subdomain *model.PackageEvent) error {
-	proto.Marshal()
-	msg := sarama.ProducerMessage{
-		Topic: kp.topic,
-		Value: sarama.ByteEncoder(),
+func (kp *KafkaProducer) Send(event *model.PackageEvent) error {
+	pbEvent := &kpb.PackageEvent{
+		ID:        event.ID,
+		PackageID: event.PackageID,
+		Type:      0,
+		Created:   timestamppb.New(event.Created),
+		Payload:   event.Payload,
 	}
-	kp.producer.SendMessage()
+
+	bytes, err := proto.Marshal(pbEvent)
+	if err != nil {
+		return err
+	}
+
+	msg := &sarama.ProducerMessage{
+		Topic: kp.topic,
+		Value: sarama.ByteEncoder(bytes),
+	}
+
+	partition, offset, err := kp.producer.SendMessage(msg)
+	if err != nil {
+		log.Err(err).Msg("KafkaProducer.Send: failed to send message")
+		return err
+	}
+
+	log.Debug().Msgf("KafkaProducer.Send: message sent, partition %d, offset %d", partition, offset)
+
+	return nil
 }

@@ -57,7 +57,7 @@ message Package {
   MaybeTimestamp Updated = 7;
 }
 
-message MsgReusable {
+message MaybeBool {
   bool Reusable = 1;
 }
 
@@ -111,7 +111,7 @@ message UpdatePackageV1Request {
   string Title = 2 [(validate.rules).string.max_len = 32]; // zero val == empty
 	string Material = 3 [(validate.rules).string.max_len = 32]; // zero val == empty
 	float MaximumVolume = 4 [(validate.rules).float.gte = 0];  // zero val == empty
-	MsgReusable MsgReusable = 5; 
+	MaybeBool Reusable = 5; 
 }
 
 message UpdatePackageV1Response {
