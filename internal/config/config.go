@@ -40,6 +40,7 @@ type Database struct {
 }
 
 type DBConns struct {
+	Attempts        int           `yaml:"attempts"`
 	DSN             string        `yaml:"dsn"`
 	MaxOpenConns    int           `yaml:"maxOpenConns"`
 	MaxIdleConns    int           `yaml:"maxIdleConns"`
@@ -56,6 +57,10 @@ func (d Database) GetDSN() string {
 		d.Name,
 		d.SslMode,
 	)
+}
+
+func (d Database) GetAttempts() int {
+	return d.DBConns.Attempts
 }
 
 func (d Database) GetMaxOpenConns() int {

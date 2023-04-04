@@ -46,6 +46,7 @@ database:
   migrations: migrations
   driver: pgx
   connection:
+    attempts: 15
     maxOpenConns: 5
     maxIdleConns: 5
     connMaxIdleTime: 300s

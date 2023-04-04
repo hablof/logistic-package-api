@@ -3,9 +3,8 @@ package database
 import (
 	"time"
 
-	"github.com/rs/zerolog/log"
-
 	"github.com/jmoiron/sqlx"
+	"github.com/rs/zerolog/log"
 )
 
 type Config interface {
@@ -14,6 +13,7 @@ type Config interface {
 	GetMaxIdleConns() int
 	GetConnMaxIdleTime() time.Duration
 	GetConnMaxLifetime() time.Duration
+	GetAttempts() int
 }
 
 // NewPostgres returns DB
@@ -29,10 +29,19 @@ func NewPostgres(cfg Config, driver string) (*sqlx.DB, error) {
 	db.SetConnMaxIdleTime(cfg.GetConnMaxIdleTime())
 	db.SetConnMaxLifetime(cfg.GetConnMaxLifetime())
 
-	// need to uncomment for homework-4
-	if err = db.Ping(); err != nil {
-		log.Error().Err(err).Msgf("failed ping the database")
+	maxAttempts := cfg.GetAttempts()
+	for i := 0; i < maxAttempts; i++ {
 
+		err = db.Ping()
+		if err == nil {
+			break
+		}
+
+		time.Sleep(3 * time.Second)
+	}
+
+	if err != nil {
+		log.Error().Err(err).Msgf("failed ping the database")
 		return nil, err
 	}
 

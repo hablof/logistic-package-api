@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	"github.com/pressly/goose/v3"
+	// "github.com/pressly/goose/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
@@ -27,7 +27,7 @@ func main() {
 	}
 	cfg := config.GetConfigInstance()
 
-	migration := flag.Bool("migration", true, "Defines the migration start option")
+	// migration := flag.Bool("migration", true, "Defines the migration start option")
 	flag.Parse()
 
 	log.Info().
@@ -37,12 +37,14 @@ func main() {
 		Str("environment", cfg.Project.Environment).
 		Msgf("Starting service: %s", cfg.Project.Name)
 
-	// In addition to global logger, in project there is
-	// local logger in gRPC api,
-	// that allows rise log level via gRPC metadata.
-	//
-	// To provide correct work of local loggers,
-	// global level should be "DebugLevel"
+	/*
+	   In addition to global logger, in project there is
+	   local logger in gRPC api,
+	   that allows rise log level via gRPC metadata.
+
+	   To provide correct work of local loggers,
+	   global level should be "DebugLevel"
+	*/
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 
 	// if cfg.Project.Debug {
@@ -58,14 +60,14 @@ func main() {
 	}
 	defer db.Close()
 
-	*migration = false // todo: need to delete this line for homework-4
-	if *migration {
-		if err = goose.Up(db.DB, cfg.Database.Migrations); err != nil {
-			log.Error().Err(err).Msg("Migration failed")
+	// *migration = false // todo: need to delete this line for homework-4
+	// if *migration {
+	// 	if err = goose.Up(db.DB, cfg.Database.Migrations); err != nil {
+	// 		log.Error().Err(err).Msg("Migration failed")
 
-			return
-		}
-	}
+	// 		return
+	// 	}
+	// }
 
 	tracing, err := tracer.NewTracer(&cfg)
 	if err != nil {
