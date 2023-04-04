@@ -26,23 +26,21 @@ import (
 
 	"github.com/hablof/logistic-package-api/internal/api"
 	"github.com/hablof/logistic-package-api/internal/app/repo"
-	"github.com/hablof/logistic-package-api/internal/app/retranslator"
-	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/config"
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 )
 
 // GrpcServer is gRPC server
 type GrpcServer struct {
-	db        *sqlx.DB
-	batchSize uint64
+	db *sqlx.DB
+	// batchSize uint64
 }
 
 // NewGrpcServer returns gRPC server with supporting of batch listing
-func NewGrpcServer(db *sqlx.DB, batchSize uint64) *GrpcServer {
+func NewGrpcServer(db *sqlx.DB /* , batchSize uint64 */) *GrpcServer {
 	return &GrpcServer{
-		db:        db,
-		batchSize: batchSize,
+		db: db,
+		// batchSize: batchSize,
 	}
 }
 
@@ -111,35 +109,12 @@ func (s *GrpcServer) Start(cfg *config.Config) error {
 		)),
 	)
 
-	r := repo.NewRepository(s.db, s.batchSize)
+	r := repo.NewRepository(s.db)
 	a := api.NewLogisticPackageAPI(r, cfg.Project.Debug, cfg.Project.AllowRiseToDebug)
 
 	pb.RegisterLogisticPackageApiServiceServer(grpcServer, a)
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(grpcServer)
-
-	kp, err := sender.NewKafkaProducer(cfg.Kafka)
-	if err != nil {
-		return err
-	}
-
-	if cfg.Retranslator.Enabled {
-		rtrCFG := retranslator.RetranslatorConfig{
-			ChannelSize:     uint64(cfg.Retranslator.ChannelSize),
-			ConsumerCount:   uint64(cfg.Retranslator.ConsumerCount),
-			BatchSize:       uint64(cfg.Retranslator.BatchSize),
-			ConsumeInterval: cfg.Retranslator.ConsumeInterval,
-			ProducerCount:   uint64(cfg.Retranslator.ProducerCount),
-			WorkerCount:     cfg.Retranslator.WorkerCount,
-			CleanerRepo:     r,
-			ConsumerRepo:    r,
-			Sender:          kp,
-		}
-
-		rtr := retranslator.NewRetranslator(rtrCFG)
-		rtr.Start()
-		defer rtr.Close()
-	}
 
 	go func() {
 		log.Info().Msgf("GRPC Server is listening on: %s", grpcAddr)

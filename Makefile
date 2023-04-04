@@ -24,6 +24,10 @@ BUF_EXE=$(GO_BIN)/buf$(shell go env GOEXE)
 run:
 	go run cmd/grpc-server/main.go
 
+.PHONY: run-r
+run-r:
+	go run cmd/retranslator/main.go
+
 .PHONY: lint
 lint:
 	golangci-lint run ./...

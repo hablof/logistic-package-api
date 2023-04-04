@@ -1,8 +1,6 @@
 package main
 
 import (
-	"flag"
-
 	// "github.com/pressly/goose/v3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -28,7 +26,7 @@ func main() {
 	cfg := config.GetConfigInstance()
 
 	// migration := flag.Bool("migration", true, "Defines the migration start option")
-	flag.Parse()
+	// flag.Parse()
 
 	log.Info().
 		Str("version", cfg.Project.Version).
@@ -77,7 +75,7 @@ func main() {
 	}
 	defer tracing.Close()
 
-	if err := server.NewGrpcServer(db, batchSize).Start(&cfg); err != nil {
+	if err := server.NewGrpcServer(db /* , batchSize */).Start(&cfg); err != nil {
 		log.Error().Err(err).Msg("Failed creating gRPC server")
 
 		return

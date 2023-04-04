@@ -1,5 +1,5 @@
 project:
-  name: Ozon Code Platform Template API
+  name: Logistic Package API
   debug: true
   allowRiseToDebug: false
   environment: development
@@ -61,6 +61,8 @@ kafka:
     - "localhost:9094"
 
 retranslator:
+  name: Logistic Package API retranslator
+  debug: true
   enabled: true
   channelSize: 512
   consumerCount: 2

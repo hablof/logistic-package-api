@@ -139,7 +139,8 @@ type Status struct {
 }
 
 type Retranslator struct {
-	Enabled         bool          `yaml:"enabled"`
+	Name            string        `yaml:"name"`
+	Debug           bool          `yaml:"debug"`
 	ChannelSize     int           `yaml:"channelSize"`
 	ConsumerCount   int           `yaml:"consumerCount"`
 	BatchSize       int           `yaml:"batchSize"`

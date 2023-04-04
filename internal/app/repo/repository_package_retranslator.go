@@ -26,7 +26,7 @@ const (
 // Lock implements consumer.RepoEventConsumer
 func (r *repository) Lock(limit uint64) ([]model.PackageEvent, error) { // use r.batchsize instead argument limit ?
 
-	log.Debug().Msgf("repository.Lock was called to lock %d entries", limit)
+	// log.Debug().Msgf("repository.Lock was called to lock %d entries", limit)
 
 	query, args, err := r.initQuery.Update("package_event").
 		Set("event_status", "Locked").
@@ -68,11 +68,14 @@ func (r *repository) Lock(limit uint64) ([]model.PackageEvent, error) { // use r
 	}
 
 	// ****************** //
-	returningIDs := make([]uint64, 0, len(output))
-	for _, elem := range output {
-		returningIDs = append(returningIDs, elem.ID)
+	lockedSize := len(output)
+	if lockedSize > 0 {
+		returningIDs := make([]uint64, 0)
+		for _, elem := range output {
+			returningIDs = append(returningIDs, elem.ID)
+		}
+		log.Debug().Msgf("repository.Lock locked events with IDs: %v", returningIDs)
 	}
-	log.Debug().Msgf("repository.Lock locked events with IDs: %v", returningIDs)
 	// ****************** //
 
 	return output, nil

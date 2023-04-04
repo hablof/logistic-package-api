@@ -6,6 +6,12 @@ type EventType uint8
 
 type EventStatus uint8
 
+type Payload []byte
+
+func (p Payload) String() string {
+	return string(p)
+}
+
 // type TimesDefered uint8
 
 const (
@@ -37,6 +43,6 @@ type PackageEvent struct {
 	Type      EventType   // `db:"event_type"`
 	Status    EventStatus // `db:"event_status"` // Это даже нигде не используется, кроме как внутри базы
 	Created   time.Time   // `db:"created_at"`
-	Payload   []byte      // `db:"payload"`
+	Payload   Payload     // `db:"payload"`
 	// Defered   TimesDefered // retranslator param for keeping correct order sending to kafka
 }

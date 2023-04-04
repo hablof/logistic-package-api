@@ -22,15 +22,15 @@ var _ cleaner.RepoEventCleaner = &repository{}
 var _ consumer.RepoEventConsumer = &repository{}
 
 type repository struct {
-	db        *sqlx.DB
-	batchSize uint64
+	db *sqlx.DB
+	// batchSize uint64
 	initQuery sq.StatementBuilderType
 }
 
-func NewRepository(db *sqlx.DB, batchSize uint64) *repository {
+func NewRepository(db *sqlx.DB /* , batchSize uint64 */) *repository {
 	return &repository{
-		db:        db,
-		batchSize: batchSize,
+		db: db,
+		// batchSize: batchSize,
 		initQuery: sq.StatementBuilder.PlaceholderFormat(sq.Dollar), // Postgres format $1, $2....
 	}
 }

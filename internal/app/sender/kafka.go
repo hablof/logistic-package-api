@@ -42,6 +42,17 @@ func (kp *KafkaProducer) Send(event *model.PackageEvent) error {
 		Payload:   event.Payload,
 	}
 
+	switch event.Type {
+	case model.Created:
+		pbEvent.Type = kpb.EventType_Created
+
+	case model.Updated:
+		pbEvent.Type = kpb.EventType_Updated
+
+	case model.Removed:
+		pbEvent.Type = kpb.EventType_Removed
+	}
+
 	bytes, err := proto.Marshal(pbEvent)
 	if err != nil {
 		return err
