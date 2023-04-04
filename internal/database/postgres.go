@@ -37,6 +37,7 @@ func NewPostgres(cfg Config, driver string) (*sqlx.DB, error) {
 			break
 		}
 
+		log.Debug().Err(err).Msg("database ping attempt failed...")
 		time.Sleep(3 * time.Second)
 	}
 
@@ -44,6 +45,8 @@ func NewPostgres(cfg Config, driver string) (*sqlx.DB, error) {
 		log.Error().Err(err).Msgf("failed ping the database")
 		return nil, err
 	}
+
+	log.Debug().Err(err).Msg("database ping attempt succeeded")
 
 	return db, nil
 }
