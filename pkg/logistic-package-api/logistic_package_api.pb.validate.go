@@ -593,6 +593,13 @@ func (m *ListPackagesV1Request) Validate() error {
 		}
 	}
 
+	if m.GetLimit() < 0 {
+		return ListPackagesV1RequestValidationError{
+			field:  "Limit",
+			reason: "value must be greater than or equal to 0",
+		}
+	}
+
 	return nil
 }
 

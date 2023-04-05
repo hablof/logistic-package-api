@@ -88,6 +88,7 @@ message DescribePackageV1Response {
 
 message ListPackagesV1Request {
   uint64 Offset = 1 [(validate.rules).uint64.gte = 0];
+  uint64 Limit = 2 [(validate.rules).uint64.gte = 0];
 }
 
 message ListPackagesV1Response {

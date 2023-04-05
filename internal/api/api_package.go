@@ -41,6 +41,7 @@ type RepoCRUD interface {
 
 type logisticPackageAPI struct {
 	pb.UnimplementedLogisticPackageApiServiceServer
+
 	repo              RepoCRUD
 	logger            zerolog.Logger
 	allowRiseLogLevel bool
