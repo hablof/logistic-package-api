@@ -92,7 +92,8 @@ message ListPackagesV1Request {
 }
 
 message ListPackagesV1Response {
-  repeated string PackageTitle = 1;
+  repeated string PackageTitle = 1; // well... not used
+  repeated Package Packages = 2;
 }
 
 // Remove

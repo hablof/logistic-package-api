@@ -667,6 +667,21 @@ func (m *ListPackagesV1Response) Validate() error {
 		return nil
 	}
 
+	for idx, item := range m.GetPackages() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListPackagesV1ResponseValidationError{
+					field:  fmt.Sprintf("Packages[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	return nil
 }
 
