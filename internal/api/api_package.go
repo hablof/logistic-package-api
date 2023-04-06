@@ -34,7 +34,7 @@ var (
 type RepoCRUD interface {
 	CreatePackage(ctx context.Context, pack *model.Package, logger zerolog.Logger) (uint64, error)
 	DescribePackage(ctx context.Context, packageID uint64, logger zerolog.Logger) (*model.Package, error)
-	ListPackages(ctx context.Context, offset uint64, logger zerolog.Logger) ([]model.Package, error)
+	ListPackages(ctx context.Context, offset uint64, limit uint64, logger zerolog.Logger) ([]model.Package, error)
 	RemovePackage(ctx context.Context, packageID uint64, logger zerolog.Logger) error
 	UpdatePackage(ctx context.Context, packageID uint64, changes map[FieldName]interface{}, log zerolog.Logger) error
 }

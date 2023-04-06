@@ -15,9 +15,9 @@ import (
 	"github.com/rs/zerolog"
 )
 
-const (
-	DefaultLimit = 10
-)
+// const (
+// 	DefaultLimit = 10
+// )
 
 // tables
 const (
@@ -189,7 +189,7 @@ func (r *repository) DescribePackage(ctx context.Context, packageID uint64, log 
 }
 
 // ListPackages implements api.RepoCRUD
-func (r *repository) ListPackages(ctx context.Context, offset uint64, log zerolog.Logger) ([]model.Package, error) {
+func (r *repository) ListPackages(ctx context.Context, offset uint64, limit uint64, log zerolog.Logger) ([]model.Package, error) {
 
 	repoSpan, ctx := opentracing.StartSpanFromContext(ctx, "repository.ListPackages")
 	defer repoSpan.Finish()
@@ -201,7 +201,7 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64, log zerolo
 	query, args, err := r.initQuery.
 		Select(packageIdCol, titleCol, materialCol, maxVolumeCol, reusableCol, createdAtCol, updatedAtCol).
 		From(packageTable).
-		Limit(DefaultLimit).
+		Limit(limit).
 		Offset(offset).
 		ToSql()
 	if err != nil {
@@ -220,7 +220,7 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64, log zerolo
 
 	defer rows.Close()
 
-	output := make([]model.Package, 0, DefaultLimit)
+	output := make([]model.Package, 0, limit)
 
 	for rows.Next() {
 		unit := model.Package{}
@@ -230,13 +230,13 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64, log zerolo
 		output = append(output, unit)
 	}
 
-	/****************/
-	returningIDs := make([]uint64, 0, len(output))
-	for _, elem := range output {
-		returningIDs = append(returningIDs, elem.ID)
+	if log.GetLevel() == zerolog.DebugLevel {
+		returningIDs := make([]uint64, 0, len(output))
+		for _, elem := range output {
+			returningIDs = append(returningIDs, elem.ID)
+		}
+		log.Debug().Msgf("repository.ListPackages: returns packages with IDs: %v", returningIDs)
 	}
-	log.Debug().Msgf("repository.ListPackages: returns packages with IDs: %v", returningIDs)
-	/****************/
 
 	return output, nil
 }
