@@ -19,7 +19,11 @@ func (o *logisticPackageAPI) RemovePackageV1(ctx context.Context, req *pb.Remove
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("RemovePackageV1 - invalid argument")
 
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+		if err, ok := err.(pb.RemovePackageV1RequestValidationError); ok {
+			return nil, status.Error(codes.InvalidArgument, err.Field())
+		}
+
+		return nil, status.Error(codes.InvalidArgument, "unable to fetch invalid field")
 	}
 
 	switch err := o.repo.RemovePackage(ctx, req.GetPackageID(), log); {

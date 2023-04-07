@@ -201,6 +201,7 @@ func (r *repository) ListPackages(ctx context.Context, offset uint64, limit uint
 	query, args, err := r.initQuery.
 		Select(packageIdCol, titleCol, materialCol, maxVolumeCol, reusableCol, createdAtCol, updatedAtCol).
 		From(packageTable).
+		OrderBy(packageIdCol).
 		Limit(limit).
 		Offset(offset).
 		ToSql()

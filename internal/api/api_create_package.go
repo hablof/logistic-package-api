@@ -18,7 +18,12 @@ func (o *logisticPackageAPI) CreatePackageV1(ctx context.Context, req *pb.Create
 
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("logisticPackageAPI.CreatePackageV1 failed")
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+
+		if err, ok := err.(pb.CreatePackageV1RequestValidationError); ok {
+			return nil, status.Error(codes.InvalidArgument, err.Field())
+		}
+
+		return nil, status.Error(codes.InvalidArgument, "unable to fetch invalid field")
 	}
 
 	unit := model.Package{

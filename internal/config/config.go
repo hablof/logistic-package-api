@@ -139,6 +139,8 @@ type Status struct {
 }
 
 type Retranslator struct {
+	MetricsAddr     string        `yaml:"metricsaddr"`
+	MetricsPath     string        `yaml:"metricspath"`
 	Name            string        `yaml:"name"`
 	Debug           bool          `yaml:"debug"`
 	ChannelSize     int           `yaml:"channelSize"`

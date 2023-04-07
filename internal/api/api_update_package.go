@@ -28,7 +28,12 @@ func (o *logisticPackageAPI) UpdatePackageV1(ctx context.Context, req *pb.Update
 
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("logisticPackageAPI.UpdatePackageV1 failed")
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+
+		if err, ok := err.(pb.UpdatePackageV1RequestValidationError); ok {
+			return nil, status.Error(codes.InvalidArgument, err.Field())
+		}
+
+		return nil, status.Error(codes.InvalidArgument, "unable to fetch invalid field")
 	}
 
 	changes := make(map[FieldName]interface{}, 4) // pb package struct has 4 non id fields

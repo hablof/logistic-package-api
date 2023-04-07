@@ -19,7 +19,12 @@ func (o *logisticPackageAPI) DescribePackageV1(ctx context.Context, req *pb.Desc
 
 	if err := req.Validate(); err != nil {
 		log.Error().Err(err).Msg("DescribePackageV1 - invalid argument")
-		return nil, status.Error(codes.InvalidArgument, err.Error())
+
+		if err, ok := err.(pb.DescribePackageV1RequestValidationError); ok {
+			return nil, status.Error(codes.InvalidArgument, err.Field())
+		}
+
+		return nil, status.Error(codes.InvalidArgument, "unable to fetch invalid field")
 	}
 
 	unit, err := o.repo.DescribePackage(ctx, req.GetPackageID(), log)

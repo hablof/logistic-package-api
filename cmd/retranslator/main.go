@@ -1,6 +1,10 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,6 +14,7 @@ import (
 	"github.com/hablof/logistic-package-api/internal/app/sender"
 	"github.com/hablof/logistic-package-api/internal/config"
 	"github.com/hablof/logistic-package-api/internal/database"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -53,7 +58,7 @@ func main() {
 		return
 	}
 
-	rtrCFG := retranslator.RetranslatorConfig{
+	retranslatorConfig := retranslator.RetranslatorConfig{
 		ChannelSize:     uint64(cfg.Retranslator.ChannelSize),
 		ConsumerCount:   uint64(cfg.Retranslator.ConsumerCount),
 		BatchSize:       uint64(cfg.Retranslator.BatchSize),
@@ -65,12 +70,55 @@ func main() {
 		Sender:          kp,
 	}
 
-	retranslator := retranslator.NewRetranslator(rtrCFG)
-	retranslator.Start()
-
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	<-sigs
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	retranslator := retranslator.NewRetranslator(retranslatorConfig)
+
+	go func() {
+		retranslator.Start()
+	}()
+
+	metricsServer := createMetricsServer(&cfg)
+
+	go func() {
+		log.Info().Msgf("Metrics server is running on %s", cfg.Retranslator.MetricsAddr)
+		if err := metricsServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error().Err(err).Msg("Failed running metrics server")
+			cancel()
+		}
+	}()
+
+	select {
+	case v := <-sigs:
+		log.Info().Msgf("signal.Notify: %v", v)
+
+	case done := <-ctx.Done():
+		log.Info().Msgf("ctx.Done: %v", done)
+	}
+
+	if err := metricsServer.Shutdown(ctx); err != nil {
+		log.Error().Err(err).Msg("metricsServer.Shutdown")
+	} else {
+		log.Info().Msg("metricsServer shut down correctly")
+	}
 
 	retranslator.Close()
+}
+
+func createMetricsServer(cfg *config.Config) *http.Server {
+	addr := fmt.Sprintf("%s:%d", cfg.Metrics.Host, cfg.Metrics.Port)
+
+	mux := http.DefaultServeMux
+	mux.Handle(cfg.Retranslator.MetricsPath, promhttp.Handler())
+
+	metricsServer := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	return metricsServer
 }
