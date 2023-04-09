@@ -7,11 +7,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/hablof/logistic-package-api/internal/api"
 	"github.com/hablof/logistic-package-api/internal/model"
-	"github.com/opentracing/opentracing-go"
+	"github.com/hablof/logistic-package-api/internal/service"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog"
 )
 
@@ -162,7 +162,7 @@ func (r *repository) DescribePackage(ctx context.Context, packageID uint64, log 
 	scanUnit := packageModelWithSqlNull{}
 	switch err := row.StructScan(&scanUnit); {
 	case errors.Is(err, sql.ErrNoRows):
-		return nil, api.ErrRepoEntityNotFound
+		return nil, service.ErrRepoEntityNotFound
 
 	case err != nil:
 		return nil, err
@@ -291,7 +291,7 @@ func (r *repository) RemovePackage(ctx context.Context, packageID uint64, log ze
 
 	if rowsAffected == 0 {
 		log.Debug().Msgf("package with id %d not found", packageID)
-		return api.ErrRepoEntityNotFound
+		return service.ErrRepoEntityNotFound
 	}
 
 	log.Debug().Msgf("event query: %s; args: %v", eventQuery, eventArgs)
@@ -314,7 +314,7 @@ func (r *repository) RemovePackage(ctx context.Context, packageID uint64, log ze
 }
 
 // UpdatePackage implements api.RepoCRUD
-func (r *repository) UpdatePackage(ctx context.Context, packageID uint64, changes map[api.FieldName]interface{}, log zerolog.Logger) error {
+func (r *repository) UpdatePackage(ctx context.Context, packageID uint64, changes map[service.FieldName]interface{}, log zerolog.Logger) error {
 
 	repoSpan, ctx := opentracing.StartSpanFromContext(ctx, "repository.UpdatePackage")
 	defer repoSpan.Finish()
@@ -323,16 +323,16 @@ func (r *repository) UpdatePackage(ctx context.Context, packageID uint64, change
 
 	for key, value := range changes {
 		switch key {
-		case api.Title:
+		case service.Title:
 			ub = ub.Set(titleCol, value)
 
-		case api.Material:
+		case service.Material:
 			ub = ub.Set(materialCol, value)
 
-		case api.MaxVolume:
+		case service.MaxVolume:
 			ub = ub.Set(maxVolumeCol, value)
 
-		case api.Reusable:
+		case service.Reusable:
 			ub = ub.Set(reusableCol, value)
 		}
 	}

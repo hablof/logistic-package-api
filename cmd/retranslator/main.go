@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -110,13 +109,13 @@ func main() {
 }
 
 func createMetricsServer(cfg *config.Config) *http.Server {
-	addr := fmt.Sprintf("%s:%d", cfg.Metrics.Host, cfg.Metrics.Port)
+	// addr := fmt.Sprintf("%s:%d", cfg.R.Host, cfg.Metrics.Port)
 
 	mux := http.DefaultServeMux
 	mux.Handle(cfg.Retranslator.MetricsPath, promhttp.Handler())
 
 	metricsServer := &http.Server{
-		Addr:    addr,
+		Addr:    cfg.Retranslator.MetricsAddr,
 		Handler: mux,
 	}
 

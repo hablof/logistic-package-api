@@ -34,7 +34,7 @@ func (o *logisticPackageAPI) CreatePackageV1(ctx context.Context, req *pb.Create
 		Reusable:      req.GetReusable(),
 	}
 
-	newID, err := o.repo.CreatePackage(ctx, &unit, log)
+	newID, err := o.service.CreatePackage(ctx, &unit, log)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.CreatePackage - failed")
 		return nil, status.Error(codes.Internal, err.Error())

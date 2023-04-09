@@ -123,10 +123,10 @@ type Jaeger struct {
 
 // Kafka - contains all parameters kafka information.
 type Kafka struct {
-	Capacity uint64   `yaml:"capacity"`
-	Topic    string   `yaml:"topic"`
-	GroupID  string   `yaml:"groupId"`
-	Brokers  []string `yaml:"brokers"`
+	// Capacity uint64   `yaml:"capacity"`
+	Topic string `yaml:"topic"`
+	// GroupID  string   `yaml:"groupId"`
+	Brokers []string `yaml:"brokers"`
 }
 
 // Status config for service.

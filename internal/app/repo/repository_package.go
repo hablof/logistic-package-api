@@ -4,9 +4,9 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/hablof/logistic-package-api/internal/api"
 	"github.com/hablof/logistic-package-api/internal/app/cleaner"
 	"github.com/hablof/logistic-package-api/internal/app/consumer"
+	"github.com/hablof/logistic-package-api/internal/service"
 )
 
 // type RepoEvent interface {
@@ -17,7 +17,7 @@ import (
 // 	Remove(eventIDs []uint64) error
 // }
 
-var _ api.RepoCRUD = &repository{}
+var _ service.RepoCRUD = &repository{}
 var _ cleaner.RepoEventCleaner = &repository{}
 var _ consumer.RepoEventConsumer = &repository{}
 

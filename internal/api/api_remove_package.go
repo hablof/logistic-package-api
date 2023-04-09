@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/hablof/logistic-package-api/internal/service"
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 
 	"google.golang.org/grpc/codes"
@@ -26,8 +27,8 @@ func (o *logisticPackageAPI) RemovePackageV1(ctx context.Context, req *pb.Remove
 		return nil, status.Error(codes.InvalidArgument, "unable to fetch invalid field")
 	}
 
-	switch err := o.repo.RemovePackage(ctx, req.GetPackageID(), log); {
-	case errors.Is(err, ErrRepoEntityNotFound):
+	switch err := o.service.RemovePackage(ctx, req.GetPackageID(), log); {
+	case errors.Is(err, service.ErrRepoEntityNotFound):
 		log.Debug().Uint64("packageID", req.PackageID).Msg("package not found")
 		totalTemplateNotFound.Inc()
 

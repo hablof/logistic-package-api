@@ -12,7 +12,7 @@ import (
 	"github.com/uber/jaeger-client-go"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/hablof/logistic-package-api/internal/model"
+	"github.com/hablof/logistic-package-api/internal/service"
 	pb "github.com/hablof/logistic-package-api/pkg/logistic-package-api"
 )
 
@@ -31,24 +31,16 @@ var (
 	})
 )
 
-type RepoCRUD interface {
-	CreatePackage(ctx context.Context, pack *model.Package, logger zerolog.Logger) (uint64, error)
-	DescribePackage(ctx context.Context, packageID uint64, logger zerolog.Logger) (*model.Package, error)
-	ListPackages(ctx context.Context, offset uint64, limit uint64, logger zerolog.Logger) ([]model.Package, error)
-	RemovePackage(ctx context.Context, packageID uint64, logger zerolog.Logger) error
-	UpdatePackage(ctx context.Context, packageID uint64, changes map[FieldName]interface{}, log zerolog.Logger) error
-}
-
 type logisticPackageAPI struct {
 	pb.UnimplementedLogisticPackageApiServiceServer
 
-	repo              RepoCRUD
+	service           service.ServiceCRUD
 	logger            zerolog.Logger
 	allowRiseLogLevel bool
 }
 
 // NewLogisticPackageAPI returns api of logistic-package-api service
-func NewLogisticPackageAPI(r RepoCRUD, logLevelDebug bool, allowRiseLogLevel bool) pb.LogisticPackageApiServiceServer {
+func NewLogisticPackageAPI(s service.ServiceCRUD, logLevelDebug bool, allowRiseLogLevel bool) pb.LogisticPackageApiServiceServer {
 	l := zerolog.New(os.Stderr).With().Timestamp().Logger()
 
 	if logLevelDebug {
@@ -58,7 +50,7 @@ func NewLogisticPackageAPI(r RepoCRUD, logLevelDebug bool, allowRiseLogLevel boo
 	}
 
 	return &logisticPackageAPI{
-		repo:              r,
+		service:           s,
 		logger:            l,
 		allowRiseLogLevel: allowRiseLogLevel,
 	}

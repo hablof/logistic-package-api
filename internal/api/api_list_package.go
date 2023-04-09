@@ -26,7 +26,7 @@ func (o *logisticPackageAPI) ListPackagesV1(ctx context.Context, req *pb.ListPac
 		return nil, status.Error(codes.InvalidArgument, "unable to fetch invalid field")
 	}
 
-	packageList, err := o.repo.ListPackages(ctx, req.GetOffset(), req.GetLimit(), log)
+	packageList, err := o.service.ListPackages(ctx, req.GetOffset(), req.GetLimit(), log)
 	if err != nil {
 		log.Error().Err(err).Msg("repo.ListPackage - failed")
 		return nil, status.Error(codes.Internal, err.Error())
