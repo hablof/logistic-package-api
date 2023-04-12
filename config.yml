@@ -54,11 +54,12 @@ database:
 
 kafka:
   # capacity: 512
-  topic: "omp-package-events"
   # groupId: "logistic-package-api"
+  attempts: 5
+  topic: "omp-package-events"
   brokers:
-    # - "kafka:9092"
     - "localhost:9094"
+    # - "kafka:9092"
 
 retranslator:
   metricsaddr: 0.0.0.0:9101

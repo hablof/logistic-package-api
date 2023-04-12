@@ -179,6 +179,13 @@ services:
       - ompnw
     volumes:
       - "./data/grafana:/var/lib/grafana"
+  
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+
 
 #   elasticsearch:
 #     image: elasticsearch:7.17.9

@@ -44,7 +44,7 @@ func main() {
 	}
 	db, err := database.NewPostgres(cfg.Database, cfg.Database.Driver)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed init postgres")
+		log.Error().Err(err).Msg("Failed init postgres")
 		return
 	}
 	defer db.Close()
@@ -53,7 +53,7 @@ func main() {
 
 	kp, err := sender.NewKafkaProducer(cfg.Kafka)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Failed init kafka")
+		log.Error().Err(err).Msg("Failed init kafka")
 		return
 	}
 

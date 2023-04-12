@@ -1,6 +1,8 @@
 package sender
 
 import (
+	"time"
+
 	"github.com/Shopify/sarama"
 	"github.com/hablof/logistic-package-api/internal/config"
 	"github.com/hablof/logistic-package-api/internal/model"
@@ -11,8 +13,9 @@ import (
 )
 
 type KafkaProducer struct {
-	producer sarama.SyncProducer
-	topic    string
+	producer    sarama.SyncProducer
+	topic       string
+	maxAttempts int
 }
 
 func NewKafkaProducer(cfg config.Kafka) (*KafkaProducer, error) {
@@ -28,8 +31,9 @@ func NewKafkaProducer(cfg config.Kafka) (*KafkaProducer, error) {
 	}
 
 	return &KafkaProducer{
-		producer: sp,
-		topic:    cfg.Topic,
+		producer:    sp,
+		topic:       cfg.Topic,
+		maxAttempts: cfg.MaxAttempts,
 	}, nil
 }
 
@@ -63,9 +67,23 @@ func (kp *KafkaProducer) Send(event *model.PackageEvent) error {
 		Value: sarama.ByteEncoder(bytes),
 	}
 
-	partition, offset, err := kp.producer.SendMessage(msg)
+	var (
+		partition int32
+		offset    int64
+		// err       error
+	)
+	for i := 0; i < kp.maxAttempts; i++ {
+		partition, offset, err = kp.producer.SendMessage(msg)
+		if err == nil {
+			break
+		}
+
+		log.Debug().Err(err).Msgf("KafkaProducer.Send: failed attempt #%d to send message", i+1)
+		time.Sleep(200 * time.Millisecond)
+	}
+
 	if err != nil {
-		log.Err(err).Msg("KafkaProducer.Send: failed to send message")
+		log.Debug().Err(err).Msg("KafkaProducer.Send: failed to send message")
 		return err
 	}
 

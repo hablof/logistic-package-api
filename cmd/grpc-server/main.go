@@ -15,9 +15,9 @@ import (
 	"github.com/hablof/logistic-package-api/internal/tracer"
 )
 
-var (
-	batchSize uint64 = 2
-)
+// var (
+// 	batchSize uint64 = 2
+// )
 
 func main() {
 	if err := config.ReadConfigYML("config.yml"); err != nil {
