@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/hablof/logistic-package-api/internal/app/repo"
 	"github.com/hablof/logistic-package-api/internal/app/retranslator"
@@ -48,14 +49,29 @@ func main() {
 		return
 	}
 	defer db.Close()
+	log.Info().Err(err).Msg("database ping attempt succeeded")
 
 	r := repo.NewRepository(db)
 
-	kp, err := sender.NewKafkaProducer(cfg.Kafka)
+	var (
+		kp *sender.KafkaProducer
+		// err error
+	)
+	for i := 0; i < cfg.Kafka.MaxAttempts; i++ {
+		kp, err = sender.NewKafkaProducer(cfg.Kafka)
+
+		if err == nil {
+			break
+		}
+
+		log.Info().Err(err).Msgf("NewKafkaProducer: failed attempt %d/%d to connect to kafka", i+1, cfg.Kafka.MaxAttempts)
+		time.Sleep(10 * time.Second)
+	}
 	if err != nil {
 		log.Error().Err(err).Msg("Failed init kafka")
 		return
 	}
+	log.Info().Err(err).Msg("NewKafkaProducer: connected to kafka")
 
 	retranslatorConfig := retranslator.RetranslatorConfig{
 		ChannelSize:     uint64(cfg.Retranslator.ChannelSize),
@@ -115,8 +131,9 @@ func createMetricsServer(cfg *config.Config) *http.Server {
 	mux.Handle(cfg.Retranslator.MetricsPath, promhttp.Handler())
 
 	metricsServer := &http.Server{
-		Addr:    cfg.Retranslator.MetricsAddr,
-		Handler: mux,
+		Addr:              cfg.Retranslator.MetricsAddr,
+		Handler:           mux,
+		ReadHeaderTimeout: 500 * time.Millisecond,
 	}
 
 	return metricsServer

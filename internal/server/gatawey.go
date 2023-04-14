@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -47,8 +48,9 @@ func createGatewayServer(grpcAddr, gatewayAddr string) *http.Server {
 	}
 
 	gatewayServer := &http.Server{
-		Addr:    gatewayAddr,
-		Handler: tracingWrapper(mux),
+		Addr:              gatewayAddr,
+		Handler:           tracingWrapper(mux),
+		ReadHeaderTimeout: 500 * time.Millisecond,
 	}
 
 	return gatewayServer

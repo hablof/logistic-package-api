@@ -1,9 +1,13 @@
+# config grpc-server & retranlator
+
 project:
   name: Logistic Package API
   debug: true
   allowRiseToDebug: false
   environment: development
 
+#
+# grpc-server service hosts:
 grpc:
   host: 0.0.0.0
   port: 8082
@@ -20,15 +24,6 @@ metrics:
   port: 9100
   path: /metrics
 
-jaeger:
-  tracing:
-    logSpans: false
-    rateLimiting: false # false = SamplerTypeConst
-    spansPerSecond: 10
-  service: "logistic-package-api"
-  host: "localhost"
-  port: ":6831"
-
 status:
   host: 0.0.0.0
   port: 8000
@@ -36,8 +31,24 @@ status:
   readinessPath: /ready
   versionPath: /version
 
+#
+# grpc-server service connects:
+jaeger:
+  tracing:
+    logSpans: false
+    rateLimiting: false # false = SamplerTypeConst
+    spansPerSecond: 10
+  service: "logistic-package-api"
+  # host: "host.docker.internal"
+  # host: "localhost"
+  host: "jaeger"
+  port: ":6831"
+
 database:
-  host: localhost
+  # host: host.docker.internal
+  # host: localhost
+  host: postgres
+
   port: 5432
   user: postgres
   password: postgres
@@ -53,14 +64,15 @@ database:
     connMaxLifetime: 300s
 
 kafka:
-  # capacity: 512
-  # groupId: "logistic-package-api"
   attempts: 5
   topic: "omp-package-events"
   brokers:
-    - "localhost:9094"
-    # - "kafka:9092"
+    # - "localhost:9094"
+    # - "host.docker.internal:9094"
+    - "kafka:9092"
 
+#
+# retranslator app config:
 retranslator:
   metricsaddr: 0.0.0.0:9101
   metricspath: /metrics

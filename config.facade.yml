@@ -1,0 +1,12 @@
+# facade config
+
+capacity: 512
+attempts: 5
+groupId: "logistic-package-api"
+brokers:
+  - "kafka:9092" # 9092!
+  # - "localhost:9094"
+topics:
+  - "omp-package-events"
+  - "omp-tgbot-commands"
+  - "omp-tgbot-cache-events"

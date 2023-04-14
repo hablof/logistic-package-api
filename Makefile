@@ -41,12 +41,14 @@ test:
 
 # ----------------------------------------------------------------
 
+# .PHONY: generate-install-buf
+# generate-install-buf:
+# 	@ command -v buf 2>&1 > /dev/null || (echo "Install buf" && \
+#     		curl -sSL0 https://github.com/bufbuild/buf/releases/download/$(BUF_VERSION)/buf-$(OS_NAME)-$(OS_ARCH)$(shell go env GOEXE) --create-dirs -o "$(BUF_EXE)" && \
+#     		chmod +x "$(BUF_EXE)")
+
 .PHONY: generate
-generate: .generate-install-buf
-.generate-install-buf:
-	@ command -v buf 2>&1 > /dev/null || (echo "Install buf" && \
-    		curl -sSL0 https://github.com/bufbuild/buf/releases/download/$(BUF_VERSION)/buf-$(OS_NAME)-$(OS_ARCH)$(shell go env GOEXE) --create-dirs -o "$(BUF_EXE)" && \
-    		chmod +x "$(BUF_EXE)")
+generate: generate-go generate-kafka-go
 
 .PHONY: generate-go
 generate-go:  .generate-go .generate-finalize-go
@@ -74,9 +76,6 @@ generate-kafka-go:  .generate-kafka-go .generate-finalize-kafka-go
 
 # ----------------------------------------------------------------
 
-.PHONY: deps
-deps: deps-go .deps-python
-
 .PHONY: deps-go
 deps-go:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1
@@ -86,15 +85,10 @@ deps-go:
 	go install github.com/envoyproxy/protoc-gen-validate@v0.9.1
 	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger@latest
 
-.PHONY: build
-build: .build
-# build: generate .build
+.PHONY: build-server
+build-server: .build-server
 
-.PHONY: build-go
-build-go: .build
-# build-go: generate-go .build
-
-.build:
+.build-server:
 	go build \
 		-tags='no_mysql no_sqlite3' \
 		-ldflags=" \
@@ -103,6 +97,51 @@ build-go: .build
 		" \
 		-o ./bin/grpc-server$(shell go env GOEXE) ./cmd/grpc-server/main.go
 
-# .PHONY: run
-# run:
-# 	go run ./cmd/logistic-package-api/main.go
+
+.PHONY: build-retranslator
+build-retranslator: .build-retranslator
+
+.build-retranslator:
+	go build \
+		-tags='no_mysql no_sqlite3' \
+		-ldflags=" \
+			-X 'github.com/$(SERVICE_PATH)/internal/config.version=$(VERSION)' \
+			-X 'github.com/$(SERVICE_PATH)/internal/config.commitHash=$(COMMIT_HASH)' \
+		" \
+		-o ./bin/retranslator$(shell go env GOEXE) ./cmd/retranslator/main.go
+
+
+# ----------------------------------------------------------------
+
+.PHONY: vendor
+vendor:
+	go mod vendor
+
+.PHONY: docker-s
+docker-s:
+	docker build -t hablof/logistic-package-api -f ./Dockerfile-server .
+
+.PHONY: docker-run-s
+docker-run-s:
+	docker run -d \
+		-v $(PWD)/config.yml:/root/config.yml \
+		hablof/logistic-package-api
+
+
+.PHONY: docker-r
+docker-r:
+	docker build -t hablof/logistic-package-api-retranslator -f ./Dockerfile-retranslator .
+
+.PHONY: docker-run-r
+docker-run-r:
+	docker run -d \
+		-v $(PWD)/config.yml:/root/config.yml \
+		hablof/logistic-package-api-retranslator
+
+.PHONY: up
+up:
+	docker-compose up -d
+
+.PHONY: down
+down:
+	docker-compose down

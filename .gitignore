@@ -6,3 +6,4 @@ bin/
 data/
 main
 vendor
+.env
