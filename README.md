@@ -12,7 +12,7 @@ https://github.com/ozonmp/omp-docs
 Первый из двух бинарников, собирающихся из данного репозитория — gRPC-server. 
 
 ### API
-Protopuf контракт API описан в `api\hablof\logistic_package_api\v1\logistic_package_api.proto`, предоставляет CRUD-методы. Код моделей, grpc методов, валидации вынесен в отдельный модуль `pkg\logistic-package-api`.
+Protopuf контракт API описан в `api\hablof\logistic_package_api\v1\logistic_package_api.proto`, предоставляет CRUD-методы. Код grpc объектов, методов, валидации вынесен в отдельный модуль `pkg\logistic-package-api`.
 
 В обработчиках запросов есть возможность поднять уровень логгирования с помощью метаданных. Для этого необходимо передать  по ключу `"log_level"` значение `"debug"`.
 
@@ -21,8 +21,16 @@ Protopuf контракт API описан в `api\hablof\logistic_package_api\v
 
 ### Repository
 Данные хранятся в Postgres. Методы пакета `repo` повторяют методы `api`, однако, при этом, реализуют паттерн [transactional outbox](https://microservices.io/patterns/data/transactional-outbox.html). Помимо изменения основной таблицы, хранящей записи о сущностях домена `package`, при выполнении CUD-методов добавляется запись в таблицу `package_event`, описывающая произошедшие изменения.
+
+Текст SQL-запросов собирается с помощью [squirell](https://github.com/Masterminds/squirrel)
+
 #### Миграции
 Миграции оприсаны в `db\migrations`.
+
+Индексы созданы:
+* на столбце `package_id` в таблице `package`, поскольку по нему идёт условие `WHERE` в запросе `Describe`
+* на столбце `package_event_id` в таблице `package_event`, поскольку по нему идёт условие `WHERE` в запросах Cleaner'а (см. ниже)
+* на столбце `event_status` в таблице `package_event`, поскольку по нему идёт условие `WHERE` в запросах Consumer'а (см. ниже)
 
 ## Retranslator
 Второй бинарник — retranslator. Работает в асинхронном режиме. Состоит из:
@@ -42,8 +50,16 @@ Protopuf контракт API описан в `api\hablof\logistic_package_api\v
 ### Cleaner
 Если отправка в кафку была успешна, `cleaner` удаляет из репозитория запись о событии, если неуспешна — `cleaner` возвращает значение в столбце `event_status` на значение по умолчанию `Unlocked`.  Запись события готова к повторной обработке.
 
+Cleaner пытается набрать батч событий и обработать их в базе одним запросом. Если батч не накапливается, обработка вызывается прниудительно по таймеру.
+
 ### Sender 
-Sender сериализует данные о событиях в protobuf и отправляет в топик `omp-package-events`. Код модели вынесен в отдельный модуль `pkg\kafka-proto`.
+Sender сериализует данные о событиях в protobuf и отправляет в топик `omp-package-events`. 
+Предусмотренны повторные попытки отправки с некоторым интервалом.
+
+Код модели вынесен в отдельный модуль `pkg\kafka-proto`.
+
+### At-least-once
+Порядок действий при завершении работы ретранслятора позволяет избежать потерь сообщений.
 
 ## Метрики
 Сервисы собирают метрики с помощью [прометей-клиента](https://github.com/prometheus/client_golang)
