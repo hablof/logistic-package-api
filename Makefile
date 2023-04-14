@@ -33,10 +33,10 @@ lint:
 	golangci-lint run ./...
 
 
-.PHONY: test
-test:
-	go test -v -race -timeout 30s -coverprofile cover.out ./...
-	go tool cover -func cover.out | grep total | awk '{print $$3}'
+# .PHONY: test
+# test:
+# 	go test -v -race -timeout 30s -coverprofile cover.out ./...
+# 	go tool cover -func cover.out | grep total | awk '{print $$3}'
 
 
 # ----------------------------------------------------------------

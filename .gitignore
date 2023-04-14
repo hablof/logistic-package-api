@@ -3,7 +3,7 @@
 .venv
 swagger/
 bin/
-data/
+# data/
 main
 vendor
 .env
