@@ -1,6 +1,6 @@
 Проект выполнен в рамках курса [Route256 2021 OZON](https://rutracker.org/forum/viewtopic.php?t=6201055) и является форком репозиториев [раз](https://github.com/ozonmp/omp-demo-api) и [два](https://github.com/ozonmp/omp-template-api).
 
-### Репозиторий с заданиями
+#### Репозиторий с заданиями
 https://github.com/ozonmp/omp-docs
 
 # О проекте
