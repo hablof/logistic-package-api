@@ -12,7 +12,7 @@ https://github.com/ozonmp/omp-docs
 Первый из двух бинарников, собирающихся из данного репозитория — gRPC-server. 
 
 ### API
-Protopuf контракт API описан в `api\hablof\logistic_package_api\v1\logistic_package_api.proto`, предоставляет CRUD-методы. Код grpc объектов, методов, валидации вынесен в отдельный модуль `pkg\logistic-package-api`.
+Protobuf контракт API описан в `api\hablof\logistic_package_api\v1\logistic_package_api.proto`, предоставляет CRUD-методы. Код grpc объектов, методов, валидации вынесен в отдельный модуль `pkg\logistic-package-api`.
 
 В обработчиках запросов есть возможность поднять уровень логирования с помощью метаданных запроса. Для этого необходимо передать по ключу `"log_level"` значение `"debug"`.
 
